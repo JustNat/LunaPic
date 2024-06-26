@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="greetings_morning">Good morning, %1$s</string>
+    <string name="greetings_afternoon">Good afternoon, %1$s</string>
+    <string name="greetings_night">Good night, %1$s</string>
+    <string name="merry_christmas">Merry Christmas, %1$s</string>
+    <string name="new_year">Happy new year, %1$s</string>
+    <string name="gplays_birthday">Happy birthday, GPlays</string>
+</resources>

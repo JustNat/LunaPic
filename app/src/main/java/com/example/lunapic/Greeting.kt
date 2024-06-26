@@ -8,18 +8,35 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.lunapic.ui.theme.LunaPicTheme
 import java.time.LocalDateTime
+import java.time.Month
 
 @Composable
-fun Greeting() {
-    val greeting : String = when (LocalDateTime.now().hour) {
-        in 0..11 -> {
-            "Bom dia, Gabriel"
+fun Greeting(name : String) {
+    val date = LocalDateTime.now()
+    val greeting : String =
+        if (date.month == Month.DECEMBER && date.dayOfMonth == 25 ) {
+            "Feliz Natal, $name"
+
+        } else if (date.month == Month.DECEMBER && date.dayOfMonth == 31) {
+            "Feliz ano novo, $name"
+
+        } else if (date.month == Month.MAY && date.dayOfMonth == 22) {
+            "Feliz aniversário, GPlays"
+
+        } else {
+            when (date.hour) {
+                in 0..11 -> {
+                    "Bom dia, $name"
+                }
+
+                in 12..19 -> {
+                    "Boa tarde, $name"
+                }
+
+                else -> "Boa noite, $name"
+            }
         }
-        in 12..19 -> {
-            "Boa tarde, Gabriel"
-        }
-        else -> "Boa noite, Gabriel"
-    }
+
     Text(
         text = greeting,
         style = MaterialTheme.typography.titleMedium,
@@ -27,17 +44,21 @@ fun Greeting() {
     )
 }
 
-@Preview("Light Mode", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_NO)
 @Preview(
-    uiMode = Configuration.UI_MODE_NIGHT_YES,
+    "Light Mode",
     showBackground = true,
-    name = "Dark Mode"
+    uiMode = Configuration.UI_MODE_NIGHT_NO
+)
+@Preview(
+    name = "Dark Mode",
+    uiMode = Configuration.UI_MODE_NIGHT_YES,
+    showBackground = true
 )
 @Composable
 fun GreetingPreview() {
     LunaPicTheme {
         Surface {
-            Greeting()
+            Greeting("Gabriel")
         }
     }
 }

@@ -1,6 +1,9 @@
 <resources>
-    <string name="app_name">LunaPic</string>
-    <string name="greetings_morning">Bom dia, Gabriel</string>
-    <string name="greetings_afternoon">Boa tarde, Gabriel</string>
-    <string name="greetings_night">Boa noite, Gabriel</string>
+    <string name="app_name" translatable="false">LunaPic</string>
+    <string name="greetings_morning">Bom dia, %1$s</string>
+    <string name="greetings_afternoon">Boa tarde, %1$s</string>
+    <string name="greetings_night">Boa noite, %1$s</string>
+    <string name="merry_christmas">Feliz Natal, %1$s</string>
+    <string name="new_year">Feliz ano novo, %1$s</string>
+    <string name="gplays_birthday">Feliz aniversário, GPlays</string>
 </resources>

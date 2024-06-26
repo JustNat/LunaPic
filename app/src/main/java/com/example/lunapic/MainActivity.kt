@@ -30,7 +30,7 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun App() {
-    Greeting()
+    Greeting("Gabriel")
 }
 
 @Preview("Light Mode", uiMode = Configuration.UI_MODE_NIGHT_NO, showBackground = true)
