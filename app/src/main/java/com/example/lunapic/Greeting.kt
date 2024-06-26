@@ -11,20 +11,19 @@ import java.time.LocalDateTime
 import java.time.Month
 
 @Composable
-fun Greeting(name : String) {
-    val date = LocalDateTime.now()
+fun Greeting(dateTime: LocalDateTime = LocalDateTime.now(), name : String) {
     val greeting : String =
-        if (date.month == Month.DECEMBER && date.dayOfMonth == 25 ) {
+        if (dateTime.month == Month.DECEMBER && dateTime.dayOfMonth == 25 ) {
             "Feliz Natal, $name"
 
-        } else if (date.month == Month.DECEMBER && date.dayOfMonth == 31) {
+        } else if (dateTime.month == Month.DECEMBER && dateTime.dayOfMonth == 31) {
             "Feliz ano novo, $name"
 
-        } else if (date.month == Month.MAY && date.dayOfMonth == 22) {
+        } else if (dateTime.month == Month.MAY && dateTime.dayOfMonth == 22) {
             "Feliz aniversário, GPlays"
 
         } else {
-            when (date.hour) {
+            when (dateTime.hour) {
                 in 0..11 -> {
                     "Bom dia, $name"
                 }
@@ -58,7 +57,7 @@ fun Greeting(name : String) {
 fun GreetingPreview() {
     LunaPicTheme {
         Surface {
-            Greeting("Gabriel")
+            Greeting(name = "Gabriel")
         }
     }
 }
