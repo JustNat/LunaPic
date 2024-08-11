@@ -10,9 +10,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import com.example.lunapic.ui.theme.LunaPicTheme
 import kotlinx.coroutines.runBlocking
 
@@ -34,16 +36,38 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun App() {
+    val isDialogOpen = remember { mutableStateOf(false) }
+
     val buckets = runBlocking {
-        listBuckts()
+        mutableStateOf(listBuckts())
     }
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(Dp(6f)),
-    ) {
-        Greeting(name = "Gabriel")
-        BucketList(bucketsResponse = buckets)
+
+    if (isDialogOpen.value) {
+        MainScaffold(onFabClick = { isDialogOpen.value = true })
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(6.dp)
+        ) {
+            Greeting(name = "Gabriel", vpadding = 6.dp)
+            BucketList(bucketsResponse = buckets.value)
+        }
+        CreateBucketDialog {
+            isDialogOpen.value = false
+            runBlocking {
+                buckets.value = listBuckts()
+            }
+        }
+    } else {
+        MainScaffold(onFabClick = { isDialogOpen.value = true })
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(6.dp)
+        ) {
+            Greeting(name = "Gabriel", vpadding = 6.dp)
+            BucketList(bucketsResponse = buckets.value)
+        }
     }
 }
 

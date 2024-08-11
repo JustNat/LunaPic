@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.material.icons.Icons
@@ -15,13 +16,16 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import aws.sdk.kotlin.services.s3.model.Bucket
-import aws.sdk.kotlin.services.s3.model.ListBucketsResponse
 import com.example.lunapic.ui.theme.LunaPicTheme
 
 @Composable
@@ -34,20 +38,27 @@ fun BucketList(bucketsResponse : List<Bucket>) {
         if (bucketsResponse.isNotEmpty()) {
             items(bucketsResponse.size) {
                 Card(
-                    modifier = Modifier.size(Dp(60f))
+                    modifier = Modifier.size(Dp(60f)),
                 ) {
                     Row(
                         modifier = Modifier
                             .fillMaxSize()
-                            .padding(horizontal = Dp(10f)),
+                            .padding(horizontal = Dp(6f)),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically,
                     )
                     {
-                        Text(text = bucketsResponse[it].name.toString())
+                        Text(
+                            text = bucketsResponse[it].name.toString(),
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier
+                                .sizeIn(maxWidth = 145.dp)
+                        )
                         Icon(
                             imageVector = Icons.Rounded.Delete,
-                            contentDescription = "Excluir bucket"
+                            contentDescription = "Excluir bucket",
+                            modifier = Modifier
+                                .size(24.dp)
                         )
                     }
                 }

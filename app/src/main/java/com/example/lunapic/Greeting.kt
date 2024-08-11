@@ -11,12 +11,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import com.example.lunapic.ui.theme.LunaPicTheme
 import java.time.LocalDateTime
 import java.time.Month
 
 @Composable
-fun Greeting(dateTime: LocalDateTime = LocalDateTime.now(), name : String) {
+fun Greeting(
+    dateTime: LocalDateTime = LocalDateTime.now(),
+    name : String,
+    hpadding : Dp = 0.dp,
+    vpadding : Dp = 0.dp
+) {
     val greeting : String =
         if (dateTime.month == Month.DECEMBER && dateTime.dayOfMonth == 25 ) {
             "Feliz Natal, $name"
@@ -40,7 +46,7 @@ fun Greeting(dateTime: LocalDateTime = LocalDateTime.now(), name : String) {
                 else -> "Boa noite, $name"
             }
         }
-    Box(modifier = Modifier.padding(Dp(6f))) {
+    Box(modifier = Modifier.padding(vertical = vpadding, horizontal = hpadding)) {
         Text(
             text = greeting,
             style = MaterialTheme.typography.titleLarge,
