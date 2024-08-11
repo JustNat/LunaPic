@@ -1,4 +1,4 @@
-package com.example.lunapic
+package com.example.lunapic.ui.components
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding

@@ -1,8 +1,9 @@
-package com.example.lunapic
+package com.example.lunapic.aws.methods
 
 import aws.sdk.kotlin.services.s3.model.BucketLocationConstraint
 import aws.sdk.kotlin.services.s3.model.CreateBucketConfiguration
 import aws.sdk.kotlin.services.s3.model.CreateBucketRequest
+import com.example.lunapic.aws.buildClient
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 

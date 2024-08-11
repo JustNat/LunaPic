@@ -1,4 +1,4 @@
-package com.example.lunapic
+package com.example.lunapic.aws
 
 import aws.sdk.kotlin.runtime.auth.credentials.StaticCredentialsProvider
 import aws.sdk.kotlin.services.s3.S3Client

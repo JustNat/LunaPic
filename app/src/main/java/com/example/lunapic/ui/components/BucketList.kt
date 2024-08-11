@@ -1,4 +1,4 @@
-package com.example.lunapic
+package com.example.lunapic.ui.components
 
 import android.content.res.Configuration
 import androidx.compose.foundation.layout.Arrangement

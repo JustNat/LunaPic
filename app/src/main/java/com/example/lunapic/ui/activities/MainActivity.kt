@@ -1,4 +1,4 @@
-package com.example.lunapic
+package com.example.lunapic.ui.activities
 
 import android.content.res.Configuration
 import android.os.Bundle
@@ -15,6 +15,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.example.lunapic.aws.methods.listBuckts
+import com.example.lunapic.ui.components.BucketList
+import com.example.lunapic.ui.components.CreateBucketDialog
+import com.example.lunapic.ui.components.Greeting
+import com.example.lunapic.ui.components.MainScaffold
 import com.example.lunapic.ui.theme.LunaPicTheme
 import kotlinx.coroutines.runBlocking
 
