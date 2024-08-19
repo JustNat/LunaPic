@@ -15,6 +15,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -23,12 +24,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import com.example.lunapic.aws.methods.createBuckt
 import com.example.lunapic.ui.theme.LunaPicTheme
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.launch
 import kotlin.Exception
 
 @Composable
-fun CreateBucketDialog(onDisMissRequest: () -> Unit) {
-    val supportTextString = "Deve conter de 3 a 63 caracteres. Começar e terminar com letra ou número. Não deve conter letras maiúsculas."
+fun CreateBucketDialog(onDisMissRequest: () -> Unit, onConfirmation: () -> Unit) {
+    val supportTextString =
+        "Deve conter de 3 a 63 caracteres. Começar e terminar com letra ou número. Não deve conter letras maiúsculas."
     val bucketName = remember { mutableStateOf("") }
     val supportText = remember {
         mutableStateOf(supportTextString)
@@ -36,6 +38,7 @@ fun CreateBucketDialog(onDisMissRequest: () -> Unit) {
     val supportTextColor = remember {
         mutableStateOf(Color.Unspecified)
     }
+    val scope = rememberCoroutineScope()
 
     Dialog(onDismissRequest = { onDisMissRequest() }) {
         Card(
@@ -60,7 +63,7 @@ fun CreateBucketDialog(onDisMissRequest: () -> Unit) {
                                 supportText.value = supportTextString
                                 supportTextColor.value = Color.Unspecified
                             }
-                        } catch (e : Exception) {
+                        } catch (e: Exception) {
                             bucketName.value = it
                             supportTextColor.value = Color.Red
                             supportText.value = e.localizedMessage ?: "Inválido"
@@ -68,12 +71,14 @@ fun CreateBucketDialog(onDisMissRequest: () -> Unit) {
                     },
                     label = { Text(text = "Nome do bucket") },
                     modifier = Modifier.padding(16.dp),
-                    supportingText = { Text(
-                        text = supportText.value,
-                        color = supportTextColor.value
-                    ) }
+                    supportingText = {
+                        Text(
+                            text = supportText.value,
+                            color = supportTextColor.value
+                        )
+                    }
                 )
-                MySwitch()
+                MySwitch("Bucket privado")
                 Row(
                     modifier = Modifier
                         .fillMaxWidth(),
@@ -88,13 +93,14 @@ fun CreateBucketDialog(onDisMissRequest: () -> Unit) {
                     TextButton(
                         onClick = {
                             if (verifyBucketName(bucketName.value.trim()) == 1) {
-                                try {
-                                    runBlocking {
+                                scope.launch {
+                                    try {
                                         createBuckt(bucketName.value.trim())
+                                        onConfirmation()
+                                        onDisMissRequest()
+                                    } catch (e: Exception) {
+                                        supportText.value = e.localizedMessage ?: "Algo deu errado"
                                     }
-                                    onDisMissRequest()
-                                } catch (e : Exception) {
-                                    supportText.value = e.localizedMessage ?: "Algo deu errado"
                                 }
                             } else {
                                 supportText.value = "Campo obrigatório."
@@ -111,30 +117,27 @@ fun CreateBucketDialog(onDisMissRequest: () -> Unit) {
     }
 }
 
-private fun verifyBucketName(bucketName : String) : Int {
+private fun verifyBucketName(bucketName: String): Int {
     return if (bucketName.isBlank()) {
         0
     } else if (bucketName.length < 3 || bucketName.length > 63) {
         throw Exception("Nome do bucket deve conter de 3 a 63 caracteres.")
-    }
-    else if (!bucketName[0].isLetterOrDigit() || !bucketName.last().isLetterOrDigit()) {
+    } else if (!bucketName[0].isLetterOrDigit() || !bucketName.last().isLetterOrDigit()) {
         throw Exception("Nome do bucket deve começar e terminar com letra ou número.")
     } else if (bucketName != bucketName.lowercase()) {
         throw Exception("Nome do bucket não pode conter letras maiúsculas.")
     } else if (bucketName.contains(' ')) {
         throw Exception("Nome do bucket não pode conter espaços.")
-    }
-    else 1
+    } else 1
 }
 
 @Composable
 @Preview
 @Preview("darkTheme", uiMode = Configuration.UI_MODE_NIGHT_YES)
 fun CreateBucketDialogPreview() {
-    val dismiss = fun() {}
     LunaPicTheme {
         Surface {
-            CreateBucketDialog(dismiss)
+            CreateBucketDialog(onDisMissRequest = {}) {}
         }
     }
 }

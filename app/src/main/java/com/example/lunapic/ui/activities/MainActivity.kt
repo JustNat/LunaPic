@@ -10,18 +10,21 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import aws.sdk.kotlin.services.s3.model.Bucket
 import com.example.lunapic.aws.methods.listBuckts
 import com.example.lunapic.ui.components.BucketList
 import com.example.lunapic.ui.components.CreateBucketDialog
 import com.example.lunapic.ui.components.Greeting
 import com.example.lunapic.ui.components.MainScaffold
 import com.example.lunapic.ui.theme.LunaPicTheme
-import kotlinx.coroutines.runBlocking
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -42,36 +45,41 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun App() {
     val isDialogOpen = remember { mutableStateOf(false) }
+    val buckets = remember { mutableStateListOf<Bucket>() }
+    val bucketInteraction = remember { mutableIntStateOf(0) }
 
-    val buckets = runBlocking {
-        mutableStateOf(listBuckts())
+    LaunchedEffect(bucketInteraction.intValue) {
+        listBuckts().forEach {
+            if (!buckets.contains(it)) {
+                buckets.add(it)
+            }
+        }
     }
 
     if (isDialogOpen.value) {
-        MainScaffold(onFabClick = { isDialogOpen.value = true })
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(6.dp)
-        ) {
-            Greeting(name = "Gabriel", vpadding = 6.dp)
-            BucketList(bucketsResponse = buckets.value)
-        }
-        CreateBucketDialog {
-            isDialogOpen.value = false
-            runBlocking {
-                buckets.value = listBuckts()
+        MainScaffold(onFabClick = { isDialogOpen.value = true }) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(6.dp)
+            ) {
+                Greeting(name = "Gabriel", vpadding = 6.dp)
+                BucketList(bucketsResponse = buckets, onBucketDelete = { bucketInteraction.intValue })
+            }
+            CreateBucketDialog(onDisMissRequest = { isDialogOpen.value = false }) {
+                bucketInteraction.intValue++
             }
         }
     } else {
-        MainScaffold(onFabClick = { isDialogOpen.value = true })
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(6.dp)
-        ) {
-            Greeting(name = "Gabriel", vpadding = 6.dp)
-            BucketList(bucketsResponse = buckets.value)
+        MainScaffold(onFabClick = { isDialogOpen.value = true }) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(6.dp)
+            ) {
+                Greeting(name = "Gabriel", vpadding = 6.dp)
+                BucketList(bucketsResponse = buckets, onBucketDelete = { bucketInteraction.intValue })
+            }
         }
     }
 }
