@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Delete
@@ -19,10 +20,14 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
@@ -31,14 +36,32 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import aws.sdk.kotlin.services.s3.model.Bucket
 import com.example.lunapic.aws.methods.deleteBuckt
+import com.example.lunapic.aws.methods.listBuckts
 import com.example.lunapic.ui.theme.LunaPicTheme
 import kotlinx.coroutines.launch
 
 @Composable
-fun BucketList(bucketsResponse : List<Bucket>, onBucketDelete: () -> Unit) {
-    val isDialogOpen = remember { mutableStateOf(false) }
-    val selectedItem = remember { mutableIntStateOf(-1) }
+fun BucketList(createBucketDialogOpen: Boolean, onCreateDialogChange: () -> Unit) {
+    val selectedItem = remember { mutableIntStateOf(0) }
     val scope = rememberCoroutineScope()
+    val bucketsResponse = remember { mutableStateListOf<Bucket>() }
+    var isDeleteBucketDialogOpen by remember { mutableStateOf(false) }
+    var bucketCreated by remember { mutableIntStateOf(0) }
+    var bucketDeleted by remember { mutableIntStateOf(0) }
+
+    LaunchedEffect(bucketDeleted) {
+        selectedItem.intValue = -1
+        if (bucketsResponse.isNotEmpty()) {
+            bucketsResponse.clear()
+            bucketCreated++
+        }
+    }
+
+    LaunchedEffect(bucketCreated) {
+        listBuckts().forEach {
+            if (!bucketsResponse.contains(it)) bucketsResponse.add(it)
+        }
+    }
 
     if (bucketsResponse.isNotEmpty()) {
         LazyVerticalGrid(
@@ -46,7 +69,7 @@ fun BucketList(bucketsResponse : List<Bucket>, onBucketDelete: () -> Unit) {
             horizontalArrangement = Arrangement.spacedBy(Dp(6f)),
             verticalArrangement = Arrangement.spacedBy(Dp(6f))
         ) {
-            items(bucketsResponse.size) {
+            itemsIndexed(bucketsResponse) { index: Int, _: Bucket ->
                 Card(
                     modifier = Modifier.size(60.dp),
                 ) {
@@ -59,7 +82,7 @@ fun BucketList(bucketsResponse : List<Bucket>, onBucketDelete: () -> Unit) {
                     )
                     {
                         Text(
-                            text = bucketsResponse[it].name.toString(),
+                            text = bucketsResponse[index].name.toString(),
                             overflow = TextOverflow.Ellipsis,
                             modifier = Modifier
                                 .sizeIn(maxWidth = 145.dp)
@@ -70,10 +93,10 @@ fun BucketList(bucketsResponse : List<Bucket>, onBucketDelete: () -> Unit) {
                             modifier = Modifier
                                 .size(24.dp)
                                 .selectable(
-                                    selected = selectedItem.intValue == it,
+                                    selected = selectedItem.intValue == index,
                                     onClick = {
-                                        selectedItem.intValue = it
-                                        isDialogOpen.value = true
+                                        selectedItem.intValue = index
+                                        isDeleteBucketDialogOpen = true
                                     }
                                 )
                         )
@@ -83,27 +106,37 @@ fun BucketList(bucketsResponse : List<Bucket>, onBucketDelete: () -> Unit) {
         }
         if (selectedItem.intValue != -1) {
             MyAlertDialog(
-                isDialogOpen = isDialogOpen.value,
+                isDialogOpen = isDeleteBucketDialogOpen,
                 title = "Atenção",
                 text = "Deseja mesmo excluir o bucket ${bucketsResponse[selectedItem.intValue].name}?",
                 negativeLabel = "Cancelar",
                 positiveLabel = "Confirmar",
-                onDismissRequest = { isDialogOpen.value = false },
+                onDismissRequest = { isDeleteBucketDialogOpen = false },
                 onConfirmation = {
                     try {
                         scope.launch {
                             deleteBuckt(bucketsResponse[selectedItem.intValue].name ?: "")
+                            bucketDeleted++
                         }
-                        isDialogOpen.value = false
+                        isDeleteBucketDialogOpen = false
                     } catch (e: Exception) {
-                        Log.e("BucketList", e.localizedMessage ?: "")
+                        Log.e("MyError", e.localizedMessage ?: "")
                     }
+                }
+            )
+        }
+        if (createBucketDialogOpen) {
+            CreateBucketDialog(
+                onDisMissRequest = { onCreateDialogChange() },
+                onConfirmation = {
+                    bucketCreated++
+                    onCreateDialogChange()
                 }
             )
         }
     } else {
         Column(
-            modifier= Modifier.fillMaxSize(),
+            modifier = Modifier.fillMaxSize(),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -121,7 +154,7 @@ fun BucketList(bucketsResponse : List<Bucket>, onBucketDelete: () -> Unit) {
 fun BucketListPreview() {
     LunaPicTheme {
         Surface {
-            BucketList(bucketsResponse = listOf()) {}
+            BucketList(false) {}
         }
     }
 }

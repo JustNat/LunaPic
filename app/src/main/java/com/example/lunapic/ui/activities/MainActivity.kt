@@ -4,26 +4,28 @@ import android.content.res.Configuration
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Add
+import androidx.compose.material3.FabPosition
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import aws.sdk.kotlin.services.s3.model.Bucket
-import com.example.lunapic.aws.methods.listBuckts
 import com.example.lunapic.ui.components.BucketList
-import com.example.lunapic.ui.components.CreateBucketDialog
 import com.example.lunapic.ui.components.Greeting
-import com.example.lunapic.ui.components.MainScaffold
 import com.example.lunapic.ui.theme.LunaPicTheme
 
 class MainActivity : ComponentActivity() {
@@ -44,41 +46,31 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun App() {
-    val isDialogOpen = remember { mutableStateOf(false) }
-    val buckets = remember { mutableStateListOf<Bucket>() }
-    val bucketInteraction = remember { mutableIntStateOf(0) }
+    var isDialogOpen by remember { mutableStateOf(false) }
 
-    LaunchedEffect(bucketInteraction.intValue) {
-        listBuckts().forEach {
-            if (!buckets.contains(it)) {
-                buckets.add(it)
+    Scaffold(
+        floatingActionButtonPosition = FabPosition.End,
+        floatingActionButton = {
+            FloatingActionButton(onClick = { isDialogOpen = true }) {
+                Icon(imageVector = Icons.Rounded.Add, contentDescription = "adicionar bucket")
             }
         }
-    }
-
-    if (isDialogOpen.value) {
-        MainScaffold(onFabClick = { isDialogOpen.value = true }) {
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(it)
+        ) {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(6.dp)
+                    .padding(it)
             ) {
                 Greeting(name = "Gabriel", vpadding = 6.dp)
-                BucketList(bucketsResponse = buckets, onBucketDelete = { bucketInteraction.intValue })
-            }
-            CreateBucketDialog(onDisMissRequest = { isDialogOpen.value = false }) {
-                bucketInteraction.intValue++
-            }
-        }
-    } else {
-        MainScaffold(onFabClick = { isDialogOpen.value = true }) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(6.dp)
-            ) {
-                Greeting(name = "Gabriel", vpadding = 6.dp)
-                BucketList(bucketsResponse = buckets, onBucketDelete = { bucketInteraction.intValue })
+                BucketList(
+                    createBucketDialogOpen = isDialogOpen,
+                    onCreateDialogChange = { isDialogOpen = false }
+                )
             }
         }
     }
