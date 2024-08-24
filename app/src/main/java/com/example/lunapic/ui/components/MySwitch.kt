@@ -11,10 +11,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun MySwitch() {
+fun MySwitch(label : String) {
     val isPrivate = remember { mutableStateOf(false) }
     Column {
-        Text(text = "Bucket privado", modifier = Modifier.padding(horizontal = 16.dp))
+        Text(text = label, modifier = Modifier.padding(horizontal = 16.dp))
         Switch(
             checked = isPrivate.value,
             onCheckedChange = {isPrivate.value = it},
