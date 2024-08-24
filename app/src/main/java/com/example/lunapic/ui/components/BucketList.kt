@@ -1,7 +1,6 @@
 package com.example.lunapic.ui.components
 
 import android.content.res.Configuration
-import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -41,8 +40,14 @@ import com.example.lunapic.ui.theme.LunaPicTheme
 import kotlinx.coroutines.launch
 
 @Composable
-fun BucketList(createBucketDialogOpen: Boolean, onCreateDialogChange: () -> Unit) {
-    val selectedItem = remember { mutableIntStateOf(0) }
+fun BucketList(
+    createBucketDialogOpen: Boolean,
+    changeCreateBucketDialogState: () -> Unit,
+    onCreatedBucket: () -> Unit,
+    onDeletedBucket: () -> Unit,
+    onErrorDeletingBucket: (Exception) -> Unit
+) {
+    var selectedItem by remember { mutableIntStateOf(0) }
     val scope = rememberCoroutineScope()
     val bucketsResponse = remember { mutableStateListOf<Bucket>() }
     var isDeleteBucketDialogOpen by remember { mutableStateOf(false) }
@@ -50,7 +55,7 @@ fun BucketList(createBucketDialogOpen: Boolean, onCreateDialogChange: () -> Unit
     var bucketDeleted by remember { mutableIntStateOf(0) }
 
     LaunchedEffect(bucketDeleted) {
-        selectedItem.intValue = -1
+        selectedItem = -1
         if (bucketsResponse.isNotEmpty()) {
             bucketsResponse.clear()
             bucketCreated++
@@ -79,60 +84,53 @@ fun BucketList(createBucketDialogOpen: Boolean, onCreateDialogChange: () -> Unit
                             .padding(horizontal = Dp(6f)),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically,
-                    )
-                    {
+                    ) {
                         Text(
                             text = bucketsResponse[index].name.toString(),
                             overflow = TextOverflow.Ellipsis,
-                            modifier = Modifier
-                                .sizeIn(maxWidth = 145.dp)
+                            modifier = Modifier.sizeIn(maxWidth = 145.dp)
                         )
                         Icon(
                             imageVector = Icons.Rounded.Delete,
                             contentDescription = "Excluir bucket",
                             modifier = Modifier
                                 .size(24.dp)
-                                .selectable(
-                                    selected = selectedItem.intValue == index,
-                                    onClick = {
-                                        selectedItem.intValue = index
-                                        isDeleteBucketDialogOpen = true
-                                    }
-                                )
+                                .selectable(selected = selectedItem == index, onClick = {
+                                    selectedItem = index
+                                    isDeleteBucketDialogOpen = true
+                                })
                         )
                     }
                 }
             }
         }
-        if (selectedItem.intValue != -1) {
-            MyAlertDialog(
-                isDialogOpen = isDeleteBucketDialogOpen,
+        if (selectedItem != -1) {
+            MyAlertDialog(isDialogOpen = isDeleteBucketDialogOpen,
                 title = "Atenção",
-                text = "Deseja mesmo excluir o bucket ${bucketsResponse[selectedItem.intValue].name}?",
+                text = "Deseja mesmo excluir o bucket ${bucketsResponse[selectedItem].name}?",
                 negativeLabel = "Cancelar",
                 positiveLabel = "Confirmar",
                 onDismissRequest = { isDeleteBucketDialogOpen = false },
                 onConfirmation = {
-                    try {
-                        scope.launch {
-                            deleteBuckt(bucketsResponse[selectedItem.intValue].name ?: "")
+                    scope.launch {
+                        try {
+                            deleteBuckt(bucketsResponse[selectedItem].name ?: "")
                             bucketDeleted++
+                            onDeletedBucket()
+                        } catch (e: Exception) {
+                            onErrorDeletingBucket(e)
                         }
-                        isDeleteBucketDialogOpen = false
-                    } catch (e: Exception) {
-                        Log.e("MyError", e.localizedMessage ?: "")
                     }
-                }
-            )
+                    isDeleteBucketDialogOpen = false
+                })
         }
         if (createBucketDialogOpen) {
-            CreateBucketDialog(
-                onDisMissRequest = { onCreateDialogChange() },
+            CreateBucketDialog(onDismissRequest = { changeCreateBucketDialogState() },
                 onConfirmation = {
                     bucketCreated++
-                    onCreateDialogChange()
-                }
-            )
+                    changeCreateBucketDialogState()
+                    onCreatedBucket()
+                })
         }
     } else {
         Column(
@@ -140,7 +138,7 @@ fun BucketList(createBucketDialogOpen: Boolean, onCreateDialogChange: () -> Unit
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(text = "Não há buckets cadastrados")
+            Text(text = "Não há buckets cadastrados.")
         }
     }
 }
@@ -148,13 +146,15 @@ fun BucketList(createBucketDialogOpen: Boolean, onCreateDialogChange: () -> Unit
 @Composable
 @Preview
 @Preview(
-    uiMode = Configuration.UI_MODE_NIGHT_YES,
-    name = "DarkMode"
+    uiMode = Configuration.UI_MODE_NIGHT_YES, name = "DarkMode"
 )
 fun BucketListPreview() {
     LunaPicTheme {
         Surface {
-            BucketList(false) {}
+            BucketList(createBucketDialogOpen = false,
+                changeCreateBucketDialogState = {},
+                onCreatedBucket = {},
+                onDeletedBucket = {}) {}
         }
     }
 }

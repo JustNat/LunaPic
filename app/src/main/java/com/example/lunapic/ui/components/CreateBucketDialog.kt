@@ -28,7 +28,7 @@ import kotlinx.coroutines.launch
 import kotlin.Exception
 
 @Composable
-fun CreateBucketDialog(onDisMissRequest: () -> Unit, onConfirmation: () -> Unit) {
+fun CreateBucketDialog(onDismissRequest: () -> Unit, onConfirmation: () -> Unit) {
     val supportTextString =
         "Deve conter de 3 a 63 caracteres. Começar e terminar com letra ou número. Não deve conter letras maiúsculas."
     val bucketName = remember { mutableStateOf("") }
@@ -40,7 +40,7 @@ fun CreateBucketDialog(onDisMissRequest: () -> Unit, onConfirmation: () -> Unit)
     }
     val scope = rememberCoroutineScope()
 
-    Dialog(onDismissRequest = { onDisMissRequest() }) {
+    Dialog(onDismissRequest = { onDismissRequest() }) {
         Card(
             modifier = Modifier
                 .fillMaxWidth()
@@ -85,7 +85,7 @@ fun CreateBucketDialog(onDisMissRequest: () -> Unit, onConfirmation: () -> Unit)
                     horizontalArrangement = Arrangement.End,
                 ) {
                     TextButton(
-                        onClick = { onDisMissRequest() },
+                        onClick = { onDismissRequest() },
                         modifier = Modifier.padding(8.dp),
                     ) {
                         Text("Cancelar")
@@ -97,7 +97,7 @@ fun CreateBucketDialog(onDisMissRequest: () -> Unit, onConfirmation: () -> Unit)
                                     try {
                                         createBuckt(bucketName.value.trim())
                                         onConfirmation()
-                                        onDisMissRequest()
+                                        onDismissRequest()
                                     } catch (e: Exception) {
                                         supportText.value = e.localizedMessage ?: "Algo deu errado"
                                     }
@@ -137,7 +137,7 @@ private fun verifyBucketName(bucketName: String): Int {
 fun CreateBucketDialogPreview() {
     LunaPicTheme {
         Surface {
-            CreateBucketDialog(onDisMissRequest = {}) {}
+            CreateBucketDialog(onDismissRequest = {}) {}
         }
     }
 }
