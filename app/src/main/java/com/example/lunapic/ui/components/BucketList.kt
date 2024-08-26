@@ -34,8 +34,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import aws.sdk.kotlin.services.s3.model.Bucket
-import com.example.lunapic.aws.methods.deleteBuckt
-import com.example.lunapic.aws.methods.listBuckts
+import com.example.lunapic.aws.AWSUtils
 import com.example.lunapic.ui.theme.LunaPicTheme
 import kotlinx.coroutines.launch
 
@@ -63,7 +62,7 @@ fun BucketList(
     }
 
     LaunchedEffect(bucketCreated) {
-        listBuckts().forEach {
+        AWSUtils.listBuckts().forEach {
             if (!bucketsResponse.contains(it)) bucketsResponse.add(it)
         }
     }
@@ -114,7 +113,7 @@ fun BucketList(
                 onConfirmation = {
                     scope.launch {
                         try {
-                            deleteBuckt(bucketsResponse[selectedItem].name ?: "")
+                            AWSUtils.deleteBuckt(bucketsResponse[selectedItem].name ?: "")
                             bucketDeleted++
                             onDeletedBucket()
                         } catch (e: Exception) {

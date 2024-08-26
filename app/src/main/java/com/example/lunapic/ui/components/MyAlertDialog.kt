@@ -54,6 +54,6 @@ fun MyAlertDialogPreview() {
         text = "Deseja confirmar a operação?",
         negativeLabel = "Cancelar",
         positiveLabel = "Sim",
-        onDismissRequest = { /*TODO*/ }) {
+        onDismissRequest = { }) {
     }
 }

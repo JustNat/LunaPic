@@ -22,7 +22,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
-import com.example.lunapic.aws.methods.createBuckt
+import com.example.lunapic.aws.AWSUtils
 import com.example.lunapic.ui.theme.LunaPicTheme
 import kotlinx.coroutines.launch
 import kotlin.Exception
@@ -95,7 +95,7 @@ fun CreateBucketDialog(onDismissRequest: () -> Unit, onConfirmation: () -> Unit)
                             if (verifyBucketName(bucketName.value.trim()) == 1) {
                                 scope.launch {
                                     try {
-                                        createBuckt(bucketName.value.trim())
+                                        AWSUtils.createBuckt(bucketName.value.trim())
                                         onConfirmation()
                                         onDismissRequest()
                                     } catch (e: Exception) {
