@@ -15,30 +15,22 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
-import com.example.lunapic.aws.AWSUtils
 import com.example.lunapic.ui.theme.LunaPicTheme
-import kotlinx.coroutines.launch
 import kotlin.Exception
 
 @Composable
-fun CreateBucketDialog(onDismissRequest: () -> Unit, onConfirmation: () -> Unit) {
+fun CreateBucketDialog(onDismissRequest: () -> Unit, onConfirmation: (String) -> Unit) {
     val supportTextString =
         "Deve conter de 3 a 63 caracteres. Começar e terminar com letra ou número. Não deve conter letras maiúsculas."
     val bucketName = remember { mutableStateOf("") }
-    val supportText = remember {
-        mutableStateOf(supportTextString)
-    }
-    val supportTextColor = remember {
-        mutableStateOf(Color.Unspecified)
-    }
-    val scope = rememberCoroutineScope()
+    val supportText = remember { mutableStateOf(supportTextString) }
+    val supportTextColor = remember { mutableStateOf(Color.Unspecified) }
 
     Dialog(onDismissRequest = { onDismissRequest() }) {
         Card(
@@ -93,15 +85,8 @@ fun CreateBucketDialog(onDismissRequest: () -> Unit, onConfirmation: () -> Unit)
                     TextButton(
                         onClick = {
                             if (verifyBucketName(bucketName.value.trim()) == 1) {
-                                scope.launch {
-                                    try {
-                                        AWSUtils.createBuckt(bucketName.value.trim())
-                                        onConfirmation()
-                                        onDismissRequest()
-                                    } catch (e: Exception) {
-                                        supportText.value = e.localizedMessage ?: "Algo deu errado"
-                                    }
-                                }
+                                onConfirmation(bucketName.value.trim())
+                                onDismissRequest()
                             } else {
                                 supportText.value = "Campo obrigatório."
                                 supportTextColor.value = Color.Red

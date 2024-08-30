@@ -89,6 +89,13 @@ fun App() {
                             snackbarHostState.showSnackbar("Bucket deletado")
                         }
                     },
+                    onErrorCreatingBucket = {
+                        scope.launch {
+                            snackbarHostState.showSnackbar(
+                                it.localizedMessage ?: "Houve um erro ao criar o bucket"
+                            )
+                        }
+                    },
                     onErrorDeletingBucket = {
                         scope.launch {
                             snackbarHostState.showSnackbar(
