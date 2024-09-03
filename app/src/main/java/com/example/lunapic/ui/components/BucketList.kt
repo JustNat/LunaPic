@@ -1,10 +1,10 @@
 package com.example.lunapic.ui.components
 
-import android.content.res.Configuration
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.sizeIn
@@ -16,8 +16,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -35,7 +37,7 @@ import com.example.lunapic.viewmodels.BucketListViewModel
 @Composable
 fun BucketList(
     createBucketDialogOpen: Boolean,
-    changeCreateBucketDialogState: () -> Unit,
+    closeCreateBucketDialog: () -> Unit,
     onCreatedBucket: () -> Unit,
     onDeletedBucket: () -> Unit,
     onErrorCreatingBucket: (Exception) -> Unit,
@@ -45,6 +47,9 @@ fun BucketList(
     val isDeleteBucketDialogOpen by bucketListViewModel.isDeleteBucketDialogOpen.collectAsStateWithLifecycle()
     val buckets by bucketListViewModel.buckts.collectAsStateWithLifecycle()
     val selectedItem by bucketListViewModel.selectedItem.collectAsStateWithLifecycle()
+    val bucketName by bucketListViewModel.bucketName.collectAsStateWithLifecycle()
+    val supportText by bucketListViewModel.supportText.collectAsStateWithLifecycle()
+    val isError by bucketListViewModel.isError.collectAsStateWithLifecycle()
 
     if (buckets.isNotEmpty()) {
         LazyVerticalGrid(
@@ -102,16 +107,50 @@ fun BucketList(
             }
         }
         if (createBucketDialogOpen) {
-            CreateBucketDialog(onDismissRequest = { changeCreateBucketDialogState() },
-                onConfirmation = {
-                    bucketListViewModel.createBucket(
-                        it,
-                        onSuccess = { onCreatedBucket() },
-                        onError = { exception -> onErrorCreatingBucket(exception) }
-                    )
-                    changeCreateBucketDialogState()
+            MyCustomDialog(onDismissRequest = {
+                closeCreateBucketDialog()
+                bucketListViewModel.onCreateBucketDialogClosed()
+            }, content = {
+                OutlinedTextField(
+                    value = bucketName,
+                    onValueChange = { bucketListViewModel.changeBucketName(it.trim()) },
+                    label = { Text(text = "Nome do bucket") },
+                    modifier = Modifier.padding(16.dp),
+                    supportingText = {
+                        Text(text = supportText)
+                    },
+                    isError = isError
+                )
+                MySwitch("Bucket privado")
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End,
+                ) {
+                    TextButton(
+                        onClick = {
+                            closeCreateBucketDialog()
+                            bucketListViewModel.onCreateBucketDialogClosed()
+                        },
+                        modifier = Modifier.padding(8.dp),
+                    ) {
+                        Text("Cancelar")
+                    }
+                    TextButton(
+                        onClick = {
+                            bucketListViewModel.createBucket(
+                                bucketName,
+                                onSuccess = { onCreatedBucket() },
+                                onError = { onErrorCreatingBucket(it) }
+                            )
+                            closeCreateBucketDialog()
+                        },
+                        modifier = Modifier.padding(8.dp),
+                    ) {
+                        Text("Confirmar")
+                    }
                 }
-            )
+            })
         }
     } else {
         Column(
@@ -124,16 +163,14 @@ fun BucketList(
     }
 }
 
+
 @Composable
 @Preview
-@Preview(
-    uiMode = Configuration.UI_MODE_NIGHT_YES, name = "DarkMode"
-)
 fun BucketListPreview() {
     LunaPicTheme {
         Surface {
             BucketList(createBucketDialogOpen = false,
-                changeCreateBucketDialogState = {},
+                closeCreateBucketDialog = {},
                 onCreatedBucket = {},
                 onDeletedBucket = {},
                 onErrorCreatingBucket = {},

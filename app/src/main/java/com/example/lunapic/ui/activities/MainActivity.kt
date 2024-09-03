@@ -78,7 +78,7 @@ fun App() {
                 Greeting(name = "Gabriel", vpadding = 6.dp)
                 BucketList(
                     createBucketDialogOpen = isDialogOpen,
-                    changeCreateBucketDialogState = { isDialogOpen = false },
+                    closeCreateBucketDialog = { isDialogOpen = false },
                     onCreatedBucket = {
                         scope.launch {
                             snackbarHostState.showSnackbar("Bucket criado")
