@@ -78,7 +78,7 @@ fun App() {
                 Greeting(name = "Gabriel", vpadding = 6.dp)
                 BucketList(
                     createBucketDialogOpen = isDialogOpen,
-                    changeCreateBucketDialogState = { isDialogOpen = false },
+                    closeCreateBucketDialog = { isDialogOpen = false },
                     onCreatedBucket = {
                         scope.launch {
                             snackbarHostState.showSnackbar("Bucket criado")
@@ -87,6 +87,13 @@ fun App() {
                     onDeletedBucket = {
                         scope.launch {
                             snackbarHostState.showSnackbar("Bucket deletado")
+                        }
+                    },
+                    onErrorCreatingBucket = {
+                        scope.launch {
+                            snackbarHostState.showSnackbar(
+                                it.localizedMessage ?: "Houve um erro ao criar o bucket"
+                            )
                         }
                     },
                     onErrorDeletingBucket = {
