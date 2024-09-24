@@ -1,4 +1,4 @@
-package com.example.lunapic.ui.activities
+package com.example.lunapic.ui.screens
 
 import android.content.res.Configuration
 import android.os.Bundle

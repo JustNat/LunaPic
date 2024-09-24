@@ -79,7 +79,6 @@ object AWSUtils : AWSCredentials() {
         val filteredKeys = keys.filter { filesNames.contains(it.key ?: "") }
 
         if (filteredKeys.isNotEmpty()) {
-
             buildClient().use {
                 filteredKeys.forEach { obj ->
                     it.getObject(
