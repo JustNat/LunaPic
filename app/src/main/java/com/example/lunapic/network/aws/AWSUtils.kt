@@ -1,4 +1,4 @@
-package com.example.lunapic.aws
+package com.example.lunapic.network.aws
 
 import android.content.Context
 import aws.sdk.kotlin.runtime.auth.credentials.StaticCredentialsProvider
@@ -12,12 +12,17 @@ import aws.sdk.kotlin.services.s3.model.GetObjectRequest
 import aws.sdk.kotlin.services.s3.model.ListObjectsV2Request
 import aws.smithy.kotlin.runtime.auth.awscredentials.Credentials
 import aws.smithy.kotlin.runtime.io.use
-import com.example.lunapic.repository.InternalStorageUtils
+import com.example.lunapic.repository.InternalStorageRepository
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
+import javax.inject.Inject
 
-object AWSUtils : AWSCredentials() {
+class AWSUtils @Inject constructor(
+    @ApplicationContext private val appContext: Context,
+    private val internalStorage: InternalStorageRepository
+) : AWSCredentials(), AWSRepository {
 
     private fun buildClient(): S3Client {
         return S3Client {
@@ -25,36 +30,6 @@ object AWSUtils : AWSCredentials() {
                 credentials = Credentials(ACCESS_KEY, SECRET_KEY)
             )
             region = "sa-east-1"
-        }
-    }
-
-    suspend fun createBuckt(name: String) = withContext(Dispatchers.IO) {
-        buildClient().use {
-            it.createBucket(
-                CreateBucketRequest {
-                    bucket = name
-                    createBucketConfiguration = CreateBucketConfiguration {
-                        locationConstraint = BucketLocationConstraint.SaEast1
-                    }
-                }
-            )
-        }
-    }
-
-    suspend fun deleteBuckt(bucketName: String) = withContext(Dispatchers.IO) {
-        buildClient().use {
-            it.deleteBucket(
-                DeleteBucketRequest {
-                    bucket = bucketName
-                }
-            )
-        }
-    }
-
-    suspend fun listBuckts(): List<Bucket> = withContext(Dispatchers.IO) {
-        buildClient().use {
-            val response = it.listBuckets().buckets ?: emptyList()
-            response
         }
     }
 
@@ -69,10 +44,39 @@ object AWSUtils : AWSCredentials() {
         }
     }
 
-    suspend fun getObjects(bucketName: String, context: Context) = withContext(Dispatchers.IO) {
+    override suspend fun createBucket(name: String): Unit = withContext(Dispatchers.IO) {
+        buildClient().use {
+            it.createBucket(
+                CreateBucketRequest {
+                    bucket = name
+                    createBucketConfiguration = CreateBucketConfiguration {
+                        locationConstraint = BucketLocationConstraint.SaEast1
+                    }
+                }
+            )
+        }
+    }
 
+    override suspend fun deleteBucket(bucketName: String): Unit = withContext(Dispatchers.IO) {
+        buildClient().use {
+            it.deleteBucket(
+                DeleteBucketRequest {
+                    bucket = bucketName
+                }
+            )
+        }
+    }
+
+    override suspend fun listBuckets(): List<Bucket> = withContext(Dispatchers.IO) {
+        buildClient().use {
+            val response = it.listBuckets().buckets ?: emptyList()
+            response
+        }
+    }
+
+    override suspend fun getObjects(bucketName: String): Unit = withContext(Dispatchers.IO) {
         val keys = listObjects(bucketName)
-        val internalDir = context.filesDir
+        val internalDir = appContext.filesDir
         val directory = File(internalDir, bucketName)
 
         val filesNames = directory.listFiles()?.map { it.name } ?: emptyList()
@@ -88,11 +92,10 @@ object AWSUtils : AWSCredentials() {
                         }
                     ) { response ->
                         response.body?.let { body ->
-                            InternalStorageUtils.saveMedia(
-                                context = context,
+                            internalStorage.saveMedia(
                                 fileName = obj.key ?: "",
                                 fileBody = body,
-                                dirName = bucketName,
+                                bucketName = bucketName,
                                 size = obj.size ?: 0
                             )
                         }

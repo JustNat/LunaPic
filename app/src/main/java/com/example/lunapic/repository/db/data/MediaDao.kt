@@ -13,5 +13,8 @@ interface MediaDao {
     suspend fun insertMedia(media: Media)
 
     @Delete
-    suspend fun deleteMedia(media : Media)
+    suspend fun deleteMedia(media: Media)
+
+    @Query("SELECT name FROM media WHERE bucket = :bucketName")
+    suspend fun getMediaNamesFromBucket(bucketName: String): List<String>
 }

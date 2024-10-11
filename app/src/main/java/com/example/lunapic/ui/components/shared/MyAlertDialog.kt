@@ -1,4 +1,4 @@
-package com.example.lunapic.ui.components
+package com.example.lunapic.ui.components.shared
 
 import android.content.res.Configuration
 import androidx.compose.material.icons.Icons

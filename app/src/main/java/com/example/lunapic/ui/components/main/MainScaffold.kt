@@ -1,4 +1,4 @@
-package com.example.lunapic.ui.components
+package com.example.lunapic.ui.components.main
 
 import android.content.res.Configuration
 import androidx.compose.foundation.layout.Box
