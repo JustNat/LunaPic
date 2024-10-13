@@ -29,13 +29,15 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    val bucketListViewModel : BucketListViewModel by viewModels()
+                    val bucketListViewModel: BucketListViewModel by viewModels()
                     val state by bucketListViewModel.state.collectAsStateWithLifecycle()
                     val snackBar = bucketListViewModel.snackBarHostState
-                    Column(modifier = Modifier.fillMaxSize()) {
-                        Greeting(name = "Gabriel", vpadding = 6.dp)
-                        BucketList(state = state, onEvent = bucketListViewModel::onEvent, snackBar = snackBar)
-                    }
+
+                    BucketList(
+                        state = state,
+                        onEvent = bucketListViewModel::onEvent,
+                        snackBar = snackBar
+                    )
                 }
             }
         }

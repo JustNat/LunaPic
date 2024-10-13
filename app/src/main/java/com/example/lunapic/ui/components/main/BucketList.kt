@@ -58,114 +58,119 @@ fun BucketList(
             }
         },
     ) {
-        if (state.buckets.isNotEmpty()) {
-            LazyVerticalGrid(
-                columns = GridCells.Fixed(2),
-                horizontalArrangement = Arrangement.spacedBy(Dp(6f)),
-                verticalArrangement = Arrangement.spacedBy(Dp(6f)),
-                modifier = Modifier.padding(it)
-            ) {
-                itemsIndexed(state.buckets) { index: Int, _: Bucket ->
-                    Card(
-                        modifier = Modifier.size(60.dp),
+        Column(
+            modifier = Modifier.fillMaxSize()
+        ) {
+            Greeting(name = "Gabriel", vpadding = 6.dp)
+            if (state.buckets.isNotEmpty()) {
+                LazyVerticalGrid(
+                    columns = GridCells.Fixed(2),
+                    horizontalArrangement = Arrangement.spacedBy(Dp(6f)),
+                    verticalArrangement = Arrangement.spacedBy(Dp(6f)),
+                    modifier = Modifier.padding(it)
+                ) {
+                    itemsIndexed(state.buckets) { index: Int, _: Bucket ->
+                        Card(
+                            modifier = Modifier.size(60.dp),
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .padding(horizontal = Dp(6f)),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                Text(
+                                    text = state.buckets[index].name.toString(),
+                                    overflow = TextOverflow.Ellipsis,
+                                    modifier = Modifier
+                                        .sizeIn(maxWidth = 145.dp)
+                                        .clickable {
+
+                                        }
+                                )
+                                Icon(
+                                    imageVector = Icons.Rounded.Delete,
+                                    contentDescription = "Excluir bucket",
+                                    modifier = Modifier
+                                        .size(24.dp)
+                                        .selectable(
+                                            selected = state.selectedBucket == index,
+                                            onClick = {
+                                                onEvent(BucketListEvent.SetSelectedBucket(index))
+                                                onEvent(BucketListEvent.SetDeleteDialogState(true))
+                                            }
+                                        )
+                                )
+                            }
+                        }
+                    }
+                }
+                if (state.selectedBucket != -1 && state.selectedBucket < state.buckets.size) {
+                    MyAlertDialog(isDialogOpen = state.isDeleteBucketDialogOpen,
+                        title = "Atenção",
+                        text = "Deseja mesmo excluir o bucket ${state.buckets[state.selectedBucket].name}?",
+                        negativeLabel = "Cancelar",
+                        positiveLabel = "Confirmar",
+                        onDismissRequest = {
+                            onEvent(BucketListEvent.SetDeleteDialogState(false))
+                            onEvent(BucketListEvent.SetSelectedBucket(-1))
+                        }
                     ) {
+                        onEvent(BucketListEvent.DeleteBucket(state.buckets[state.selectedBucket]))
+                    }
+                }
+                if (state.isCreateBucketDialogOpen) {
+                    MyCustomDialog(onDismissRequest = {
+                        onEvent(BucketListEvent.SetCreateDialogState(false))
+                    }, content = {
+                        OutlinedTextField(
+                            value = state.bucketForm.bucketName,
+                            onValueChange = { name -> onEvent(BucketListEvent.SetBucketName( name.trim())) },
+                            label = { Text(text = "Nome do bucket") },
+                            modifier = Modifier.padding(16.dp),
+                            supportingText = {
+                                Text(text = state.supportText)
+                            },
+                            isError = state.isError
+                        )
+                        MySwitch(
+                            label = "Bucket privado",
+                            value = state.bucketForm.isPrivate,
+                            onCheckedChange = { value -> onEvent(BucketListEvent.SetIsPrivate(value)) }
+                        )
                         Row(
                             modifier = Modifier
-                                .fillMaxSize()
-                                .padding(horizontal = Dp(6f)),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically,
+                                .fillMaxWidth(),
+                            horizontalArrangement = Arrangement.End,
                         ) {
-                            Text(
-                                text = state.buckets[index].name.toString(),
-                                overflow = TextOverflow.Ellipsis,
-                                modifier = Modifier
-                                    .sizeIn(maxWidth = 145.dp)
-                                    .clickable {
-
-                                    }
-                            )
-                            Icon(
-                                imageVector = Icons.Rounded.Delete,
-                                contentDescription = "Excluir bucket",
-                                modifier = Modifier
-                                    .size(24.dp)
-                                    .selectable(
-                                        selected = state.selectedBucket == index,
-                                        onClick = {
-                                            onEvent(BucketListEvent.SetSelectedBucket(index))
-                                            onEvent(BucketListEvent.SetDeleteDialogState(true))
-                                        }
-                                    )
-                            )
+                            TextButton(
+                                onClick = {
+                                    onEvent(BucketListEvent.SetCreateDialogState(false))
+                                },
+                                modifier = Modifier.padding(8.dp),
+                            ) {
+                                Text("Cancelar")
+                            }
+                            TextButton(
+                                onClick = {
+                                    onEvent(BucketListEvent.CreateBucket)
+                                },
+                                modifier = Modifier.padding(8.dp),
+                            ) {
+                                Text("Confirmar")
+                            }
                         }
-                    }
+                    })
                 }
-            }
-            if (state.selectedBucket != -1 && state.selectedBucket < state.buckets.size) {
-                MyAlertDialog(isDialogOpen = state.isDeleteBucketDialogOpen,
-                    title = "Atenção",
-                    text = "Deseja mesmo excluir o bucket ${state.buckets[state.selectedBucket].name}?",
-                    negativeLabel = "Cancelar",
-                    positiveLabel = "Confirmar",
-                    onDismissRequest = {
-                        onEvent(BucketListEvent.SetDeleteDialogState(false))
-                        onEvent(BucketListEvent.SetSelectedBucket(-1))
-                    }
+            } else {
+                Column(
+                    modifier = Modifier.fillMaxSize(),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    onEvent(BucketListEvent.DeleteBucket(state.buckets[state.selectedBucket]))
+                    Text(text = "Não há buckets cadastrados.")
                 }
-            }
-            if (state.isCreateBucketDialogOpen) {
-                MyCustomDialog(onDismissRequest = {
-                    onEvent(BucketListEvent.SetCreateDialogState(false))
-                }, content = {
-                    OutlinedTextField(
-                        value = state.bucketForm.bucketName,
-                        onValueChange = { name -> onEvent(BucketListEvent.SetBucketName( name.trim())) },
-                        label = { Text(text = "Nome do bucket") },
-                        modifier = Modifier.padding(16.dp),
-                        supportingText = {
-                            Text(text = state.supportText)
-                        },
-                        isError = state.isError
-                    )
-                    MySwitch(
-                        label = "Bucket privado",
-                        value = state.bucketForm.isPrivate,
-                        onCheckedChange = { value -> onEvent(BucketListEvent.SetIsPrivate(value)) }
-                    )
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth(),
-                        horizontalArrangement = Arrangement.End,
-                    ) {
-                        TextButton(
-                            onClick = {
-                                onEvent(BucketListEvent.SetCreateDialogState(false))
-                            },
-                            modifier = Modifier.padding(8.dp),
-                        ) {
-                            Text("Cancelar")
-                        }
-                        TextButton(
-                            onClick = {
-                                onEvent(BucketListEvent.CreateBucket)
-                            },
-                            modifier = Modifier.padding(8.dp),
-                        ) {
-                            Text("Confirmar")
-                        }
-                    }
-                })
-            }
-        } else {
-            Column(
-                modifier = Modifier.fillMaxSize(),
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Text(text = "Não há buckets cadastrados.")
             }
         }
     }
