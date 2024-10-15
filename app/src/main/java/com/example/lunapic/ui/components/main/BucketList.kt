@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Add
@@ -32,7 +31,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import aws.sdk.kotlin.services.s3.model.Bucket
 import com.example.lunapic.ui.components.shared.MyAlertDialog
 import com.example.lunapic.ui.components.shared.MyCustomDialog
 import com.example.lunapic.ui.components.shared.MySwitch
@@ -43,9 +41,9 @@ import com.example.lunapic.ui.state.BucketListState
 fun BucketList(
     state: BucketListState,
     onEvent: (BucketListEvent) -> Unit,
-    snackBar : SnackbarHostState
+    snackBar : SnackbarHostState,
+    onBucketClick : (String) -> Unit
 ) {
-
     Scaffold(
         floatingActionButtonPosition = FabPosition.End,
         snackbarHost = { SnackbarHost(snackBar) },
@@ -69,7 +67,7 @@ fun BucketList(
                     verticalArrangement = Arrangement.spacedBy(Dp(6f)),
                     modifier = Modifier.padding(it)
                 ) {
-                    itemsIndexed(state.buckets) { index: Int, _: Bucket ->
+                    items(state.buckets.size) { index ->
                         Card(
                             modifier = Modifier.size(60.dp),
                         ) {
@@ -85,9 +83,7 @@ fun BucketList(
                                     overflow = TextOverflow.Ellipsis,
                                     modifier = Modifier
                                         .sizeIn(maxWidth = 145.dp)
-                                        .clickable {
-
-                                        }
+                                        .clickable { onBucketClick(state.buckets[index].name.toString()) }
                                 )
                                 Icon(
                                     imageVector = Icons.Rounded.Delete,

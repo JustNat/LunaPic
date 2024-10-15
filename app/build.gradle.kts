@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.jetbrainsKotlinAndroid)
     alias(libs.plugins.ksp)
     alias(libs.plugins.compose.compiler)
+    alias(libs.plugins.jetbrains.kotlin.serialization)
     id("com.google.dagger.hilt.android")
 }
 
@@ -73,11 +74,18 @@ dependencies {
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
 
+    // kotlin serialization
+    implementation(libs.kotlinx.serialization.json)
+
+    // nav-compose
+    implementation(libs.androidx.navigation.compose)
+
     // s3
     implementation(libs.s3)
 
     // hilt
     implementation(libs.hilt.android)
+    implementation(libs.androidx.hilt.navigation.compose)
     ksp(libs.hilt.android.compiler)
 
     // room
