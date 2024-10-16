@@ -1,9 +1,9 @@
 package com.example.lunapic.di
 
-import com.example.lunapic.network.aws.AWSRepository
-import com.example.lunapic.network.aws.AWSUtils
-import com.example.lunapic.repository.InternalStorageRepository
-import com.example.lunapic.repository.InternalStorageUtils
+import com.example.lunapic.repository.network.CloudStorageServiceRepository
+import com.example.lunapic.repository.network.aws.S3Manager
+import com.example.lunapic.storage.InternalStorageManager
+import com.example.lunapic.storage.InternalStorageRepository
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -16,13 +16,13 @@ abstract class RepositoriesModule {
 
     @Binds
     @Singleton
-    abstract fun bindAwsRepository(
-        awsRepository : AWSUtils
-    ): AWSRepository
+    abstract fun bindS3Manager(
+        s3Manager : S3Manager
+    ): CloudStorageServiceRepository
 
     @Binds
     @Singleton
     abstract fun bindInternalStorageRepository(
-        internalStorageRepository: InternalStorageUtils
+        internalStorageRepository: InternalStorageManager
     ) : InternalStorageRepository
 }

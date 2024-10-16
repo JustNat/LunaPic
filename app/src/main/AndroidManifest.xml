@@ -16,12 +16,7 @@
         android:theme="@style/Theme.LunaPic"
         tools:targetApi="31">
         <activity
-            android:name=".ui.screens.MediaActivity"
-            android:exported="false"
-            android:label="@string/title_activity_media"
-            android:theme="@style/Theme.LunaPic" />
-        <activity
-            android:name=".ui.screens.MainActivity"
+            android:name=".MainActivity"
             android:exported="true"
             android:theme="@style/Theme.LunaPic">
             <intent-filter>

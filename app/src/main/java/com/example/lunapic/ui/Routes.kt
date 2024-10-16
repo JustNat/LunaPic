@@ -1,4 +1,4 @@
-package com.example.lunapic.ui.screens
+package com.example.lunapic.ui
 
 import kotlinx.serialization.Serializable
 

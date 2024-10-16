@@ -6,9 +6,9 @@ import androidx.lifecycle.viewModelScope
 import aws.sdk.kotlin.services.s3.model.Bucket as AwsBucket
 import com.example.lunapic.repository.db.data.Bucket as MyBucket
 import aws.sdk.kotlin.services.s3.model.BucketAlreadyExists
-import com.example.lunapic.network.aws.AWSRepository
-import com.example.lunapic.repository.InternalStorageRepository
+import com.example.lunapic.storage.InternalStorageRepository
 import com.example.lunapic.repository.db.data.BucketDao
+import com.example.lunapic.repository.network.CloudStorageServiceRepository
 import com.example.lunapic.ui.state.BucketForm
 import com.example.lunapic.ui.state.BucketListEvent
 import com.example.lunapic.ui.state.BucketListState
@@ -25,10 +25,10 @@ import javax.inject.Inject
 
 @HiltViewModel
 class BucketListViewModel @Inject constructor(
-    private val awsRepository: AWSRepository,
+    private val s3Manager: CloudStorageServiceRepository,
     private val bucketDao: BucketDao,
     private val internalStorage: InternalStorageRepository
-) : ViewModel(), AWSRepository by awsRepository {
+) : ViewModel() {
 
     private val _state = MutableStateFlow(BucketListState())
     val state = _state.asStateFlow()
@@ -38,7 +38,7 @@ class BucketListViewModel @Inject constructor(
         viewModelScope.launch {
             _state.update {
                 it.copy(
-                    buckets = awsRepository.listBuckets(),
+                    buckets = s3Manager.listBuckets(),
                     supportText = "Deve conter de 3 a 63 caracteres, começar e terminar com letra ou número e sem letras maiúsculas."
                 )
             }
@@ -52,7 +52,7 @@ class BucketListViewModel @Inject constructor(
                     try {
                         if (nameValidation(_state.value.bucketForm.bucketName) == 0) {
 
-                            awsRepository.createBucket(_state.value.bucketForm.bucketName)
+                            s3Manager.createBucket(_state.value.bucketForm.bucketName)
                             internalStorage.saveBucket(_state.value.bucketForm.bucketName)
                             bucketDao.insertBucket(
                                 MyBucket(
@@ -100,7 +100,7 @@ class BucketListViewModel @Inject constructor(
                 viewModelScope.launch {
                     try {
                         event.bucket.name?.let { name ->
-                            awsRepository.deleteBucket(name)
+                            s3Manager.deleteBucket(name)
                             internalStorage.deleteBucket(name)
                             bucketDao.deleteBucket(name)
                         }

@@ -1,4 +1,4 @@
-package com.example.lunapic.ui.screens
+package com.example.lunapic
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -16,6 +16,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import com.example.lunapic.ui.components.main.BucketList
 import com.example.lunapic.ui.components.media.MediaList
+import com.example.lunapic.ui.Routes
 import com.example.lunapic.ui.theme.LunaPicTheme
 import com.example.lunapic.viewmodels.BucketListViewModel
 import com.example.lunapic.viewmodels.MediaListViewModel

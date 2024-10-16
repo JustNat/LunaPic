@@ -1,4 +1,4 @@
-package com.example.lunapic.network.aws
+package com.example.lunapic.repository.network.aws
 
 import android.content.Context
 import aws.sdk.kotlin.runtime.auth.credentials.StaticCredentialsProvider
@@ -12,17 +12,18 @@ import aws.sdk.kotlin.services.s3.model.GetObjectRequest
 import aws.sdk.kotlin.services.s3.model.ListObjectsV2Request
 import aws.smithy.kotlin.runtime.auth.awscredentials.Credentials
 import aws.smithy.kotlin.runtime.io.use
-import com.example.lunapic.repository.InternalStorageRepository
+import com.example.lunapic.repository.network.CloudStorageServiceRepository
+import com.example.lunapic.storage.InternalStorageRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
 import javax.inject.Inject
 
-class AWSUtils @Inject constructor(
+class S3Manager @Inject constructor(
     @ApplicationContext private val appContext: Context,
     private val internalStorage: InternalStorageRepository
-) : AWSCredentials(), AWSRepository {
+) : AWSCredentials(), CloudStorageServiceRepository {
 
     private fun buildClient(): S3Client {
         return S3Client {

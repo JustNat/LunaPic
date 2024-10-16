@@ -1,4 +1,4 @@
-package com.example.lunapic.repository
+package com.example.lunapic.storage
 
 import android.content.Context
 import android.graphics.Bitmap
@@ -14,7 +14,7 @@ import java.io.FileOutputStream
 import java.io.IOException
 import javax.inject.Inject
 
-class InternalStorageUtils @Inject constructor(@ApplicationContext private val appContext: Context) :
+class InternalStorageManager @Inject constructor(@ApplicationContext private val appContext: Context) :
     InternalStorageRepository {
 
     private val internalDir = appContext.filesDir

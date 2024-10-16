@@ -1,4 +1,4 @@
-package com.example.lunapic.repository
+package com.example.lunapic.storage
 
 import android.graphics.Bitmap
 import aws.smithy.kotlin.runtime.content.ByteStream
