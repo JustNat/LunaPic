@@ -116,50 +116,6 @@ fun BucketList(
                         onEvent(BucketListEvent.DeleteBucket(state.buckets[state.selectedBucket]))
                     }
                 }
-                if (state.createBucketForm.isCreateBucketDialog) {
-                    MyCustomDialog(onDismissRequest = {
-                        onEvent(BucketListEvent.SetCreateDialogState(false))
-                    }, content = {
-                        OutlinedTextField(
-                            value = state.createBucketForm.bucketName,
-                            onValueChange = { name -> onEvent(BucketListEvent.SetBucketName(name.filterNot { it.isWhitespace() })) },
-                            label = { Text(text = "Nome do bucket") },
-                            modifier = Modifier.padding(16.dp),
-                            supportingText = {
-                                Text(text = state.supportText)
-                            },
-                            isError = state.isError
-                        )
-                        MySwitch(
-                            label = "Bucket privado",
-                            value = state.createBucketForm.isPrivate,
-                            onCheckedChange = { value -> onEvent(BucketListEvent.SetIsPrivate(value)) }
-                        )
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth(),
-                            horizontalArrangement = Arrangement.End,
-                        ) {
-                            TextButton(
-                                onClick = {
-                                    onEvent(BucketListEvent.SetCreateDialogState(false))
-                                },
-                                modifier = Modifier.padding(8.dp),
-                            ) {
-                                Text("Cancelar")
-                            }
-                            TextButton(
-                                onClick = {
-                                    onEvent(BucketListEvent.CreateBucket)
-                                },
-                                modifier = Modifier.padding(8.dp),
-                                enabled = !state.isError
-                            ) {
-                                Text("Confirmar")
-                            }
-                        }
-                    })
-                }
             } else {
                 Column(
                     modifier = Modifier.fillMaxSize(),
@@ -169,6 +125,50 @@ fun BucketList(
                     Text(text = "Não há buckets cadastrados.")
                 }
             }
+        }
+        if (state.createBucketForm.isCreateBucketDialog) {
+            MyCustomDialog(onDismissRequest = {
+                onEvent(BucketListEvent.SetCreateDialogState(false))
+            }, content = {
+                OutlinedTextField(
+                    value = state.createBucketForm.bucketName,
+                    onValueChange = { name -> onEvent(BucketListEvent.SetBucketName(name.filterNot { it.isWhitespace() })) },
+                    label = { Text(text = "Nome do bucket") },
+                    modifier = Modifier.padding(16.dp),
+                    supportingText = {
+                        Text(text = state.supportText)
+                    },
+                    isError = state.isError
+                )
+                MySwitch(
+                    label = "Bucket privado",
+                    value = state.createBucketForm.isPrivate,
+                    onCheckedChange = { value -> onEvent(BucketListEvent.SetIsPrivate(value)) }
+                )
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End,
+                ) {
+                    TextButton(
+                        onClick = {
+                            onEvent(BucketListEvent.SetCreateDialogState(false))
+                        },
+                        modifier = Modifier.padding(8.dp),
+                    ) {
+                        Text("Cancelar")
+                    }
+                    TextButton(
+                        onClick = {
+                            onEvent(BucketListEvent.CreateBucket)
+                        },
+                        modifier = Modifier.padding(8.dp),
+                        enabled = !state.isError
+                    ) {
+                        Text("Confirmar")
+                    }
+                }
+            })
         }
     }
 }
