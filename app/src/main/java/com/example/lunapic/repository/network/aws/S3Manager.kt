@@ -12,6 +12,8 @@ import aws.sdk.kotlin.services.s3.model.GetObjectRequest
 import aws.sdk.kotlin.services.s3.model.ListObjectsV2Request
 import aws.smithy.kotlin.runtime.auth.awscredentials.Credentials
 import aws.smithy.kotlin.runtime.io.use
+import aws.smithy.kotlin.runtime.net.url.Url
+import com.example.lunapic.BuildConfig
 import com.example.lunapic.repository.network.CloudStorageServiceRepository
 import com.example.lunapic.storage.InternalStorageRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -23,13 +25,14 @@ import javax.inject.Inject
 class S3Manager @Inject constructor(
     @ApplicationContext private val appContext: Context,
     private val internalStorage: InternalStorageRepository
-) : AWSCredentials(), CloudStorageServiceRepository {
+) : CloudStorageServiceRepository {
 
     private fun buildClient(): S3Client {
         return S3Client {
             credentialsProvider = StaticCredentialsProvider(
-                credentials = Credentials(ACCESS_KEY, SECRET_KEY)
+                credentials = Credentials(BuildConfig.AWS_ACCESS_KEY, BuildConfig.AWS_SECRET_ACCESS_KEY)
             )
+            endpointUrl = Url.parse(BuildConfig.AWS_ENDPOINT)
             region = "sa-east-1"
         }
     }

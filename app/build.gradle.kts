@@ -24,6 +24,41 @@ android {
         }
     }
 
+    flavorDimensions += "environment"
+    productFlavors {
+        create("local") {
+            dimension = "environment"
+            applicationIdSuffix = ".local"
+            buildConfigField("String",
+                "AWS_ENDPOINT",
+                "\"http://10.0.2.2:4566\""
+            )
+            buildConfigField("String",
+                "AWS_ACCESS_KEY",
+                "\"ABCDEFGHIJKLMNOPQRST\""
+            )
+            buildConfigField("String",
+                "AWS_SECRET_ACCESS_KEY",
+                "\"1234567890123456789012345678901234567890\""
+            )
+        }
+        create("production") {
+            dimension = "environment"
+            buildConfigField("String",
+                "AWS_ENDPOINT",
+                "\"https://s3.sa-east-1.amazonaws.com\""
+            )
+            buildConfigField("String",
+                "AWS_ACCESS_KEY",
+                project.findProperty("AWS_ACCESS_KEY").toString()
+            )
+            buildConfigField("String",
+                "AWS_SECRET_ACCESS_KEY",
+                project.findProperty("AWS_SECRET_ACCESS_KEY").toString()
+            )
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = false
@@ -42,6 +77,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
     composeOptions {
         kotlinCompilerExtensionVersion = "1.5.1"

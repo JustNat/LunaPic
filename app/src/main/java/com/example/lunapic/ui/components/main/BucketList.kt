@@ -122,7 +122,7 @@ fun BucketList(
                     }, content = {
                         OutlinedTextField(
                             value = state.bucketForm.bucketName,
-                            onValueChange = { name -> onEvent(BucketListEvent.SetBucketName( name.trim())) },
+                            onValueChange = { name -> onEvent(BucketListEvent.SetBucketName(name.trim())) },
                             label = { Text(text = "Nome do bucket") },
                             modifier = Modifier.padding(16.dp),
                             supportingText = {

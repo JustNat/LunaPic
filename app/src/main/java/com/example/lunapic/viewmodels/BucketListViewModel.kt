@@ -122,7 +122,7 @@ class BucketListViewModel @Inject constructor(
                             _state.update { it.copy(isDeleteBucketDialogOpen = false) }
                             snackBarHostState.showSnackbar("Houve um erro ao deletar o bucket: ${e.localizedMessage}")
                         }
-                    } catch (e : IOException) {
+                    } catch (e: IOException) {
                         withContext(Dispatchers.IO) {
                             _state.update { it.copy(isDeleteBucketDialogOpen = false) }
                             snackBarHostState.showSnackbar("Houve um erro ao deletar o bucket internamente: ${e.localizedMessage}")
