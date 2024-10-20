@@ -1,4 +1,4 @@
-package com.example.lunapic.ui.state
+package com.example.lunapic.ui.state.bucket
 
 import aws.sdk.kotlin.services.s3.model.Bucket
 

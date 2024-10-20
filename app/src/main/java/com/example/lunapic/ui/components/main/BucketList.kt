@@ -34,15 +34,15 @@ import androidx.compose.ui.unit.dp
 import com.example.lunapic.ui.components.shared.MyAlertDialog
 import com.example.lunapic.ui.components.shared.MyCustomDialog
 import com.example.lunapic.ui.components.shared.MySwitch
-import com.example.lunapic.ui.state.BucketListEvent
-import com.example.lunapic.ui.state.BucketListState
+import com.example.lunapic.ui.state.bucket.BucketListEvent
+import com.example.lunapic.ui.state.bucket.BucketListState
 
 @Composable
 fun BucketList(
     state: BucketListState,
     onEvent: (BucketListEvent) -> Unit,
-    snackBar : SnackbarHostState,
-    onBucketClick : (String) -> Unit
+    snackBar: SnackbarHostState,
+    onBucketClick: (String) -> Unit
 ) {
     Scaffold(
         floatingActionButtonPosition = FabPosition.End,
@@ -116,13 +116,13 @@ fun BucketList(
                         onEvent(BucketListEvent.DeleteBucket(state.buckets[state.selectedBucket]))
                     }
                 }
-                if (state.isCreateBucketDialogOpen) {
+                if (state.createBucketForm.isCreateBucketDialog) {
                     MyCustomDialog(onDismissRequest = {
                         onEvent(BucketListEvent.SetCreateDialogState(false))
                     }, content = {
                         OutlinedTextField(
-                            value = state.bucketForm.bucketName,
-                            onValueChange = { name -> onEvent(BucketListEvent.SetBucketName(name.trim())) },
+                            value = state.createBucketForm.bucketName,
+                            onValueChange = { name -> onEvent(BucketListEvent.SetBucketName(name.filterNot { it.isWhitespace() })) },
                             label = { Text(text = "Nome do bucket") },
                             modifier = Modifier.padding(16.dp),
                             supportingText = {
@@ -132,7 +132,7 @@ fun BucketList(
                         )
                         MySwitch(
                             label = "Bucket privado",
-                            value = state.bucketForm.isPrivate,
+                            value = state.createBucketForm.isPrivate,
                             onCheckedChange = { value -> onEvent(BucketListEvent.SetIsPrivate(value)) }
                         )
                         Row(
@@ -153,6 +153,7 @@ fun BucketList(
                                     onEvent(BucketListEvent.CreateBucket)
                                 },
                                 modifier = Modifier.padding(8.dp),
+                                enabled = !state.isError
                             ) {
                                 Text("Confirmar")
                             }

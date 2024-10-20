@@ -1,4 +1,4 @@
-package com.example.lunapic.ui.state
+package com.example.lunapic.ui.state.bucket
 
 import aws.sdk.kotlin.services.s3.model.Bucket
 
@@ -6,8 +6,7 @@ data class BucketListState(
     val buckets : List<Bucket> = emptyList(),
     val selectedBucket : Int = -1,
     val isDeleteBucketDialogOpen : Boolean = false,
-    val isCreateBucketDialogOpen : Boolean = false,
-    val bucketForm: BucketForm = BucketForm(),
+    val createBucketForm: CreateBucketForm = CreateBucketForm(),
     val supportText : String = "",
     val isError : Boolean = false
 )

@@ -9,9 +9,10 @@ import aws.sdk.kotlin.services.s3.model.BucketAlreadyExists
 import com.example.lunapic.storage.InternalStorageRepository
 import com.example.lunapic.repository.db.data.BucketDao
 import com.example.lunapic.repository.network.CloudStorageServiceRepository
-import com.example.lunapic.ui.state.BucketForm
-import com.example.lunapic.ui.state.BucketListEvent
-import com.example.lunapic.ui.state.BucketListState
+import com.example.lunapic.ui.state.bucket.BucketListEvent
+import com.example.lunapic.ui.state.bucket.BucketListState
+import com.example.lunapic.ui.state.bucket.CreateBucketForm
+import com.example.lunapic.ui.state.bucket.ValidationBucketNameResponse
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -50,46 +51,53 @@ class BucketListViewModel @Inject constructor(
             is BucketListEvent.CreateBucket -> {
                 viewModelScope.launch {
                     try {
-                        if (nameValidation(_state.value.bucketForm.bucketName) == 0) {
-
-                            s3Manager.createBucket(_state.value.bucketForm.bucketName)
-                            internalStorage.saveBucket(_state.value.bucketForm.bucketName)
+                        val validation =
+                            _state.value.createBucketForm.validateBucketName(_state.value.createBucketForm.bucketName)
+                        if (validationName(validation) == 0) {
+                            s3Manager.createBucket(_state.value.createBucketForm.bucketName)
+                            internalStorage.saveBucket(_state.value.createBucketForm.bucketName)
                             bucketDao.insertBucket(
                                 MyBucket(
-                                    name = _state.value.bucketForm.bucketName,
-                                    isPrivate = _state.value.bucketForm.isPrivate,
+                                    name = _state.value.createBucketForm.bucketName,
+                                    isPrivate = _state.value.createBucketForm.isPrivate,
                                     lastUpdatedAt = OffsetDateTime.now()
                                 )
                             )
 
                             val auxList = _state.value.buckets.toMutableList()
-                            auxList.add(AwsBucket { name = _state.value.bucketForm.bucketName })
+                            auxList.add(AwsBucket {
+                                name = _state.value.createBucketForm.bucketName
+                            })
 
                             _state.update {
                                 it.copy(
                                     buckets = auxList.toList(),
-                                    bucketForm = BucketForm(),
-                                    isCreateBucketDialogOpen = false
+                                    createBucketForm = CreateBucketForm(),
                                 )
                             }
 
                             snackBarHostState.showSnackbar("Bucket criado.")
-                        } else {
-                            _state.update {
-                                it.copy(
-                                    isError = true,
-                                    supportText = "Nome para o bucket inválido."
-                                )
-                            }
                         }
                     } catch (_: BucketAlreadyExists) {
                         withContext(Dispatchers.Main) {
-                            _state.update { it.copy(isCreateBucketDialogOpen = false) }
+                            _state.update {
+                                it.copy(
+                                    createBucketForm = it.createBucketForm.copy(
+                                        isCreateBucketDialog = false
+                                    )
+                                )
+                            }
                             snackBarHostState.showSnackbar("Este bucket já existe.")
                         }
                     } catch (e: Exception) {
                         withContext(Dispatchers.Main) {
-                            _state.update { it.copy(isCreateBucketDialogOpen = false) }
+                            _state.update {
+                                it.copy(
+                                    createBucketForm = it.createBucketForm.copy(
+                                        isCreateBucketDialog = false
+                                    )
+                                )
+                            }
                             snackBarHostState.showSnackbar(e.localizedMessage ?: "Houve um erro.")
                         }
                     }
@@ -132,21 +140,23 @@ class BucketListViewModel @Inject constructor(
             }
 
             is BucketListEvent.SetBucketName -> {
-                nameValidation(event.bucketName)
                 _state.update {
-                    it.copy(bucketForm = it.bucketForm.copy(bucketName = event.bucketName))
+                    it.copy(createBucketForm = it.createBucketForm.copy(bucketName = event.bucketName))
                 }
+                val validation =
+                    (_state.value.createBucketForm.validateBucketName(event.bucketName))
+                validationName(validation)
             }
 
             is BucketListEvent.SetIsPrivate -> {
                 _state.update {
-                    it.copy(bucketForm = it.bucketForm.copy(isPrivate = event.isPrivate))
+                    it.copy(createBucketForm = it.createBucketForm.copy(isPrivate = event.isPrivate))
                 }
             }
 
             is BucketListEvent.SetCreateDialogState -> {
                 _state.update {
-                    it.copy(isCreateBucketDialogOpen = event.state)
+                    it.copy(createBucketForm = it.createBucketForm.copy(isCreateBucketDialog = event.state))
                 }
             }
 
@@ -164,43 +174,57 @@ class BucketListViewModel @Inject constructor(
         }
     }
 
-    private fun nameValidation(name: String): Int {
-        if (name.isBlank()) {
-            _state.update {
-                it.copy(supportText = "Campo obrigatório", isError = true)
+    private fun validationName(validation: ValidationBucketNameResponse): Int {
+        when (validation) {
+            is ValidationBucketNameResponse.HasCapitalLetters -> {
+                _state.update {
+                    it.copy(
+                        isError = true,
+                        supportText = validation.message
+                    )
+                }
+                return 1
             }
-            return 1
-        } else if (name.length < 3 || name.length > 63) {
-            _state.update {
-                it.copy(supportText = "Nome deve conter de 3 a 63 caracteres.", isError = true)
+
+            is ValidationBucketNameResponse.IsBlank -> {
+                _state.update {
+                    it.copy(
+                        isError = true,
+                        supportText = validation.message
+                    )
+                }
+                return 1
             }
-            return 1
-        } else if (!name[0].isLetterOrDigit() || !name.last().isLetterOrDigit()) {
-            _state.update {
-                it.copy(
-                    supportText = "Nome do bucket deve começar e terminar com letra ou número.",
-                    isError = true
-                )
+
+            is ValidationBucketNameResponse.IsEndingWithLetterOrDigit -> {
+                _state.update {
+                    it.copy(
+                        isError = true,
+                        supportText = validation.message
+                    )
+                }
+                return 1
             }
-            return 1
-        } else if (name != name.lowercase()) {
-            _state.update {
-                it.copy(supportText = "Nome não pode conter letras maiúsculas.", isError = true)
+
+            is ValidationBucketNameResponse.IsTooShortOrLong -> {
+                _state.update {
+                    it.copy(
+                        isError = true,
+                        supportText = validation.message
+                    )
+                }
+                return 1
             }
-            return 1
-        } else if (name.contains(' ')) {
-            _state.update {
-                it.copy(supportText = "Nome do bucket não pode conter espaços.", isError = true)
+
+            is ValidationBucketNameResponse.Ok -> {
+                _state.update {
+                    it.copy(
+                        isError = false,
+                        supportText = validation.message
+                    )
+                }
+                return 0
             }
-            return 1
-        } else {
-            _state.update {
-                it.copy(
-                    supportText = "Deve conter de 3 a 63 caracteres, começar e terminar com letra ou número e sem letras maiúsculas.",
-                    isError = false
-                )
-            }
-            return 0
         }
     }
 }
