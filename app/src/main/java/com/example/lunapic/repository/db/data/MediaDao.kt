@@ -4,7 +4,6 @@ import androidx.room.Dao
 import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.Query
-import java.time.OffsetDateTime
 
 @Dao
 interface MediaDao {
@@ -15,6 +14,6 @@ interface MediaDao {
     @Delete
     suspend fun deleteMedia(media: Media)
 
-    @Query("SELECT name FROM media WHERE bucket = :bucketName")
-    suspend fun getMediaNamesFromBucket(bucketName: String): List<String>
+    @Query("SELECT COUNT(*) FROM media WHERE name = :name")
+    suspend fun isMediaRegistered(name: String) : Int
 }

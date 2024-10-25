@@ -1,7 +1,7 @@
 package com.example.lunapic.ui.state
 
-import android.graphics.Bitmap
+import java.io.File
 
 data class MediaListState(
-    val medias : List<Bitmap> = emptyList(),
+    val medias : List<File> = emptyList(),
 )

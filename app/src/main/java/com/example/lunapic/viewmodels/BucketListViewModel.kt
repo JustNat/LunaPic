@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import aws.sdk.kotlin.services.s3.model.Bucket as AwsBucket
 import com.example.lunapic.repository.db.data.Bucket as MyBucket
 import aws.sdk.kotlin.services.s3.model.BucketAlreadyExists
+import com.example.lunapic.repository.db.data.Bucket
 import com.example.lunapic.storage.InternalStorageRepository
 import com.example.lunapic.repository.db.data.BucketDao
 import com.example.lunapic.repository.network.CloudStorageServiceRepository
@@ -22,6 +23,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.IOException
 import java.time.OffsetDateTime
+import java.time.ZoneId
 import javax.inject.Inject
 
 @HiltViewModel
@@ -36,12 +38,34 @@ class BucketListViewModel @Inject constructor(
     val snackBarHostState = SnackbarHostState()
 
     init {
+//        TODO("QUANDO SEM INTERNET, PUXAR DO INTERNAL STORAGE OS BUCKETS")
         viewModelScope.launch {
-            _state.update {
-                it.copy(
-                    buckets = s3Manager.listBuckets(),
-                    supportText = "Deve conter de 3 a 63 caracteres, começar e terminar com letra ou número e sem letras maiúsculas."
-                )
+            try {
+                _state.update {
+                    it.copy(
+                        buckets = s3Manager.listBuckets(),
+                        supportText = CreateBucketForm.DEFAULT_MESSAGE
+                    )
+                }
+
+                // TODO("CASO HOUVER ALGUM BUCKET NAO LISTADO NO DB, PERGUNTAR SE É PRIVADO OU NAO")
+                _state.value.buckets.forEach { bucket ->
+                    if (bucketDao.isBucketRegistered(bucket.name ?: "") == 0) {
+                        bucketDao.insertBucket(
+                            Bucket(
+                                name = bucket.name ?: "",
+                                isPrivate = false,
+                                lastUpdatedAt = OffsetDateTime.now(ZoneId.of("America/Sao_Paulo"))
+                            )
+                        )
+                    }
+                }
+
+                _state.value.buckets.forEach { bucket ->
+                    internalStorage.saveBucket(bucket.name.toString())
+                }
+            } catch (e: Exception) {
+                snackBarHostState.showSnackbar("Houve um erro ao carregar os buckets. ${e.localizedMessage}")
             }
         }
     }
@@ -60,7 +84,7 @@ class BucketListViewModel @Inject constructor(
                                 MyBucket(
                                     name = _state.value.createBucketForm.bucketName,
                                     isPrivate = _state.value.createBucketForm.isPrivate,
-                                    lastUpdatedAt = OffsetDateTime.now()
+                                    lastUpdatedAt = OffsetDateTime.now(ZoneId.of("America/Sao_Paulo"))
                                 )
                             )
 

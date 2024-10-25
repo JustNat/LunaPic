@@ -22,40 +22,55 @@ android {
         vectorDrawables {
             useSupportLibrary = true
         }
+        buildConfigField(
+            "String",
+            "AWS_ENDPOINT",
+            "\"http://10.0.2.2:4566\""
+        )
+        buildConfigField(
+            "String",
+            "AWS_ACCESS_KEY",
+            "\"ABCDEFGHIJKLMNOPQRST\""
+        )
+        buildConfigField(
+            "String",
+            "AWS_SECRET_ACCESS_KEY",
+            "\"1234567890123456789012345678901234567890\""
+        )
     }
 
     flavorDimensions += "environment"
     productFlavors {
+        create("dev") {
+            dimension = "environment"
+            applicationIdSuffix = ".dev"
+            buildConfigField("boolean", "COIL_DEBUGGER", "true")
+        }
+
         create("local") {
             dimension = "environment"
             applicationIdSuffix = ".local"
-            buildConfigField("String",
-                "AWS_ENDPOINT",
-                "\"http://10.0.2.2:4566\""
-            )
-            buildConfigField("String",
-                "AWS_ACCESS_KEY",
-                "\"ABCDEFGHIJKLMNOPQRST\""
-            )
-            buildConfigField("String",
-                "AWS_SECRET_ACCESS_KEY",
-                "\"1234567890123456789012345678901234567890\""
-            )
+            buildConfigField(type = "boolean", "COIL_DEBUGGER", "false")
         }
+
         create("production") {
             dimension = "environment"
-            buildConfigField("String",
+            buildConfigField(
+                "String",
                 "AWS_ENDPOINT",
                 "\"https://s3.sa-east-1.amazonaws.com\""
             )
-            buildConfigField("String",
+            buildConfigField(
+                "String",
                 "AWS_ACCESS_KEY",
                 project.findProperty("AWS_ACCESS_KEY").toString()
             )
-            buildConfigField("String",
+            buildConfigField(
+                "String",
                 "AWS_SECRET_ACCESS_KEY",
                 project.findProperty("AWS_SECRET_ACCESS_KEY").toString()
             )
+            buildConfigField("boolean", "COIL_DEBUGGER", "false")
         }
     }
 
@@ -109,6 +124,10 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+
+    // coil
+    implementation(libs.coil.compose)
+    implementation(libs.coil)
 
     // kotlin serialization
     implementation(libs.kotlinx.serialization.json)

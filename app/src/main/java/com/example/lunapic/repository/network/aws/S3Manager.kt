@@ -1,6 +1,5 @@
 package com.example.lunapic.repository.network.aws
 
-import android.content.Context
 import aws.sdk.kotlin.runtime.auth.credentials.StaticCredentialsProvider
 import aws.sdk.kotlin.services.s3.S3Client
 import aws.sdk.kotlin.services.s3.model.Bucket
@@ -11,26 +10,25 @@ import aws.sdk.kotlin.services.s3.model.DeleteBucketRequest
 import aws.sdk.kotlin.services.s3.model.GetObjectRequest
 import aws.sdk.kotlin.services.s3.model.ListObjectsV2Request
 import aws.smithy.kotlin.runtime.auth.awscredentials.Credentials
+import aws.smithy.kotlin.runtime.content.toByteArray
 import aws.smithy.kotlin.runtime.io.use
 import aws.smithy.kotlin.runtime.net.url.Url
 import com.example.lunapic.BuildConfig
 import com.example.lunapic.repository.network.CloudStorageServiceRepository
-import com.example.lunapic.storage.InternalStorageRepository
-import dagger.hilt.android.qualifiers.ApplicationContext
+import com.example.lunapic.repository.network.aws.data.Media
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import java.io.File
 import javax.inject.Inject
 
-class S3Manager @Inject constructor(
-    @ApplicationContext private val appContext: Context,
-    private val internalStorage: InternalStorageRepository
-) : CloudStorageServiceRepository {
+class S3Manager @Inject constructor() : CloudStorageServiceRepository {
 
     private fun buildClient(): S3Client {
         return S3Client {
             credentialsProvider = StaticCredentialsProvider(
-                credentials = Credentials(BuildConfig.AWS_ACCESS_KEY, BuildConfig.AWS_SECRET_ACCESS_KEY)
+                credentials = Credentials(
+                    BuildConfig.AWS_ACCESS_KEY,
+                    BuildConfig.AWS_SECRET_ACCESS_KEY
+                )
             )
             endpointUrl = Url.parse(BuildConfig.AWS_ENDPOINT)
             region = "sa-east-1"
@@ -78,35 +76,29 @@ class S3Manager @Inject constructor(
         }
     }
 
-    override suspend fun getObjects(bucketName: String): Unit = withContext(Dispatchers.IO) {
+    override suspend fun getObjects(bucketName: String): List<Media> = withContext(Dispatchers.IO) {
         val keys = listObjects(bucketName)
-        val internalDir = appContext.filesDir
-        val directory = File(internalDir, bucketName)
+        val byteStreams = mutableListOf<Media>()
+        val client = buildClient()
 
-        val filesNames = directory.listFiles()?.map { it.name } ?: emptyList()
-        val filteredKeys = keys.filter { filesNames.contains(it.key ?: "") }
-
-        if (filteredKeys.isNotEmpty()) {
-            buildClient().use {
-                filteredKeys.forEach { obj ->
-                    it.getObject(
-                        input = GetObjectRequest {
+        keys.forEach { obj ->
+            client.getObject(input = GetObjectRequest {
+                bucket = bucketName
+                key = obj.key
+            }) { response ->
+                response.body?.let { body ->
+                    byteStreams.add(
+                        Media(
+                            name = obj.key ?: "",
+                            body = body.toByteArray(),
+                            size = obj.size ?: 0,
                             bucket = bucketName
-                            key = obj.key
-                        }
-                    ) { response ->
-                        response.body?.let { body ->
-                            internalStorage.saveMedia(
-                                fileName = obj.key ?: "",
-                                fileBody = body,
-                                bucketName = bucketName,
-                                size = obj.size ?: 0
-                            )
-                        }
-                    }
+                        )
+                    )
                 }
             }
         }
+        client.close()
+        byteStreams.toList()
     }
-
 }

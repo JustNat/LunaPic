@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.room.Room
 import com.example.lunapic.repository.db.LunaPicDatabase
 import com.example.lunapic.repository.db.data.BucketDao
+import com.example.lunapic.repository.db.data.MediaDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -28,5 +29,10 @@ object DatabaseModule {
     @Provides
     fun provideBucketDao(db : LunaPicDatabase) : BucketDao {
         return db.bucketDao()
+    }
+
+    @Provides
+    fun provideMediaDao(db : LunaPicDatabase) : MediaDao {
+        return db.mediaDao()
     }
 }
