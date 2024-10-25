@@ -53,8 +53,7 @@ class MediaListViewModel @AssistedInject constructor(
                     }
                 }
             } catch (e: Exception) {
-                // TODO("ADICIONAR SNACKBAR")
-                Log.e("MediaListVM", e.localizedMessage ?: "")
+                _state.value.snackBarHostState.showSnackbar("Ocorreu um erro: {${e.localizedMessage}}")
             }
             _state.update {
                 it.copy(medias = internalStorage.getMedias(bucketName))

@@ -22,7 +22,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -40,13 +39,11 @@ import com.example.lunapic.ui.state.bucket.BucketListState
 @Composable
 fun BucketList(
     state: BucketListState,
-    onEvent: (BucketListEvent) -> Unit,
-    snackBar: SnackbarHostState,
-    onBucketClick: (String) -> Unit
+    onEvent: (BucketListEvent) -> Unit
 ) {
     Scaffold(
         floatingActionButtonPosition = FabPosition.End,
-        snackbarHost = { SnackbarHost(snackBar) },
+        snackbarHost = { SnackbarHost(state.snackBarHost) },
         floatingActionButton = {
             ExtendedFloatingActionButton(onClick = {
                 onEvent(BucketListEvent.SetCreateDialogState(true))
@@ -83,7 +80,13 @@ fun BucketList(
                                     overflow = TextOverflow.Ellipsis,
                                     modifier = Modifier
                                         .sizeIn(maxWidth = 145.dp)
-                                        .clickable { onBucketClick(state.buckets[index].name.toString()) }
+                                        .clickable {
+                                            onEvent(
+                                                BucketListEvent.NavigateToMediaScreen(
+                                                    state.buckets[index].name.toString()
+                                                )
+                                            )
+                                        }
                                 )
                                 Icon(
                                     imageVector = Icons.Rounded.Delete,

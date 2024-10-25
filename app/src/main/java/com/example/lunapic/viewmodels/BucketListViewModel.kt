@@ -1,6 +1,5 @@
 package com.example.lunapic.viewmodels
 
-import androidx.compose.material3.SnackbarHostState
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import aws.sdk.kotlin.services.s3.model.Bucket as AwsBucket
@@ -10,6 +9,8 @@ import com.example.lunapic.repository.db.data.Bucket
 import com.example.lunapic.storage.InternalStorageRepository
 import com.example.lunapic.repository.db.data.BucketDao
 import com.example.lunapic.repository.network.CloudStorageServiceRepository
+import com.example.lunapic.ui.navigation.AppNavigationActions
+import com.example.lunapic.ui.navigation.Navigator
 import com.example.lunapic.ui.state.bucket.BucketListEvent
 import com.example.lunapic.ui.state.bucket.BucketListState
 import com.example.lunapic.ui.state.bucket.CreateBucketForm
@@ -30,12 +31,12 @@ import javax.inject.Inject
 class BucketListViewModel @Inject constructor(
     private val s3Manager: CloudStorageServiceRepository,
     private val bucketDao: BucketDao,
-    private val internalStorage: InternalStorageRepository
+    private val internalStorage: InternalStorageRepository,
+    private val navigator: Navigator
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(BucketListState())
     val state = _state.asStateFlow()
-    val snackBarHostState = SnackbarHostState()
 
     init {
 //        TODO("QUANDO SEM INTERNET, PUXAR DO INTERNAL STORAGE OS BUCKETS")
@@ -65,7 +66,7 @@ class BucketListViewModel @Inject constructor(
                     internalStorage.saveBucket(bucket.name.toString())
                 }
             } catch (e: Exception) {
-                snackBarHostState.showSnackbar("Houve um erro ao carregar os buckets. ${e.localizedMessage}")
+                _state.value.snackBarHost.showSnackbar("Houve um erro ao carregar os buckets. ${e.localizedMessage}")
             }
         }
     }
@@ -100,7 +101,7 @@ class BucketListViewModel @Inject constructor(
                                 )
                             }
 
-                            snackBarHostState.showSnackbar("Bucket criado.")
+                            _state.value.snackBarHost.showSnackbar("Bucket criado.")
                         }
                     } catch (_: BucketAlreadyExists) {
                         withContext(Dispatchers.Main) {
@@ -111,7 +112,7 @@ class BucketListViewModel @Inject constructor(
                                     )
                                 )
                             }
-                            snackBarHostState.showSnackbar("Este bucket já existe.")
+                            _state.value.snackBarHost.showSnackbar("Este bucket já existe.")
                         }
                     } catch (e: Exception) {
                         withContext(Dispatchers.Main) {
@@ -122,7 +123,7 @@ class BucketListViewModel @Inject constructor(
                                     )
                                 )
                             }
-                            snackBarHostState.showSnackbar(e.localizedMessage ?: "Houve um erro.")
+                            _state.value.snackBarHost.showSnackbar(e.localizedMessage ?: "Houve um erro.")
                         }
                     }
                 }
@@ -148,16 +149,16 @@ class BucketListViewModel @Inject constructor(
                             )
                         }
 
-                        snackBarHostState.showSnackbar("Bucket deletado.")
+                        _state.value.snackBarHost.showSnackbar("Bucket deletado.")
                     } catch (e: Exception) {
                         withContext(Dispatchers.Main) {
                             _state.update { it.copy(isDeleteBucketDialogOpen = false) }
-                            snackBarHostState.showSnackbar("Houve um erro ao deletar o bucket: ${e.localizedMessage}")
+                            _state.value.snackBarHost.showSnackbar("Houve um erro ao deletar o bucket: ${e.localizedMessage}")
                         }
                     } catch (e: IOException) {
                         withContext(Dispatchers.IO) {
                             _state.update { it.copy(isDeleteBucketDialogOpen = false) }
-                            snackBarHostState.showSnackbar("Houve um erro ao deletar o bucket internamente: ${e.localizedMessage}")
+                            _state.value.snackBarHost.showSnackbar("Houve um erro ao deletar o bucket internamente: ${e.localizedMessage}")
                         }
                     }
                 }
@@ -194,6 +195,10 @@ class BucketListViewModel @Inject constructor(
                 _state.update {
                     it.copy(selectedBucket = event.selectedBucket)
                 }
+            }
+
+            is BucketListEvent.NavigateToMediaScreen -> {
+                navigator.navigate(AppNavigationActions.BucketsScreen.bucketScreenToMediasScreen(event.bucketName))
             }
         }
     }
