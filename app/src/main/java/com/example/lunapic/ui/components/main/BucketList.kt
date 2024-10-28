@@ -173,5 +173,8 @@ fun BucketList(
                 }
             })
         }
+        if (state.isSetBucketsPrivacyDialog) {
+            NewBucketsDialog(buckets = state.bucketsPrivacy, onEvent = onEvent)
+        }
     }
 }

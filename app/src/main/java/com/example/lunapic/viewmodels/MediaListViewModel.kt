@@ -1,6 +1,5 @@
 package com.example.lunapic.viewmodels
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.lunapic.repository.db.data.BucketDao
@@ -14,7 +13,9 @@ import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.time.OffsetDateTime
@@ -30,9 +31,11 @@ class MediaListViewModel @AssistedInject constructor(
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(MediaListState())
-    val state = _state.asStateFlow()
+    val state = _state
+        .onStart { loadData() }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000L), MediaListState())
 
-    init {
+    private fun loadData() {
         // TODO("Verificar primeiro se as mídias estão presentes no armazenamento do app")
         viewModelScope.launch {
             try {

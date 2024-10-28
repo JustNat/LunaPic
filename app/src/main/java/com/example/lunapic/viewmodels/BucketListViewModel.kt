@@ -18,7 +18,9 @@ import com.example.lunapic.ui.state.bucket.ValidationBucketNameResponse
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -36,10 +38,12 @@ class BucketListViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(BucketListState())
-    val state = _state.asStateFlow()
+    val state = _state
+        .onStart { loadData() }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000L), BucketListState())
 
-    init {
-//        TODO("QUANDO SEM INTERNET, PUXAR DO INTERNAL STORAGE OS BUCKETS")
+    private fun loadData() {
+        // TODO("QUANDO SEM INTERNET, PUXAR DO INTERNAL STORAGE OS BUCKETS")
         viewModelScope.launch {
             try {
                 _state.update {
@@ -49,7 +53,7 @@ class BucketListViewModel @Inject constructor(
                     )
                 }
 
-                // TODO("CASO HOUVER ALGUM BUCKET NAO LISTADO NO DB, PERGUNTAR SE É PRIVADO OU NAO")
+                val bucketsToSetPrivacy = mutableListOf<MyBucket>()
                 _state.value.buckets.forEach { bucket ->
                     if (bucketDao.isBucketRegistered(bucket.name ?: "") == 0) {
                         bucketDao.insertBucket(
@@ -59,6 +63,19 @@ class BucketListViewModel @Inject constructor(
                                 lastUpdatedAt = OffsetDateTime.now(ZoneId.of("America/Sao_Paulo"))
                             )
                         )
+                        bucketsToSetPrivacy.add(
+                            MyBucket(
+                                bucket.name ?: "",
+                                false,
+                                OffsetDateTime.now(ZoneId.of("America/Sao_Paulo"))
+                            )
+                        )
+                        _state.update {
+                            it.copy(
+                                isSetBucketsPrivacyDialog = true,
+                                bucketsPrivacy = bucketsToSetPrivacy.toList()
+                            )
+                        }
                     }
                 }
 
@@ -123,7 +140,9 @@ class BucketListViewModel @Inject constructor(
                                     )
                                 )
                             }
-                            _state.value.snackBarHost.showSnackbar(e.localizedMessage ?: "Houve um erro.")
+                            _state.value.snackBarHost.showSnackbar(
+                                e.localizedMessage ?: "Houve um erro."
+                            )
                         }
                     }
                 }
@@ -198,7 +217,36 @@ class BucketListViewModel @Inject constructor(
             }
 
             is BucketListEvent.NavigateToMediaScreen -> {
-                navigator.navigate(AppNavigationActions.BucketsScreen.bucketScreenToMediasScreen(event.bucketName))
+                navigator.navigate(
+                    AppNavigationActions.BucketsScreen.bucketScreenToMediasScreen(
+                        event.bucketName
+                    )
+                )
+            }
+
+            BucketListEvent.RegisterBucketsPrivacy -> {
+                viewModelScope.launch {
+                    try {
+                        _state.value.bucketsPrivacy.forEach {
+                            bucketDao.updateBucket(it)
+                        }
+                    } catch (e: Exception) {
+                        _state.value.snackBarHost.showSnackbar("Houve um erro ao registrar os buckets: ${e.localizedMessage}")
+                    }
+                }
+                _state.update { it.copy(isSetBucketsPrivacyDialog = false) }
+            }
+
+            is BucketListEvent.SetBucketPrivacy -> {
+                val buckets = _state.value.bucketsPrivacy.toMutableList()
+                val newIsPrivate =
+                    buckets[event.index].copy(isPrivate = !_state.value.bucketsPrivacy[event.index].isPrivate)
+                buckets[event.index] = newIsPrivate
+                _state.update { state -> state.copy(bucketsPrivacy = buckets.toList()) }
+            }
+
+            is BucketListEvent.SetBucketsPrivacyDialogState -> {
+                _state.update { it.copy(isSetBucketsPrivacyDialog = event.state) }
             }
         }
     }
