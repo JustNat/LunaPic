@@ -4,6 +4,8 @@ data class CreateBucketForm(
     val isCreateBucketDialog: Boolean = false,
     val bucketName: String = "",
     val isPrivate: Boolean = false,
+    val isError: Boolean = false,
+    val supportText: String = DEFAULT_MESSAGE
 ) {
     companion object {
         const val IS_BLANK_MESSAGE = "Nome do bucket está vazio."

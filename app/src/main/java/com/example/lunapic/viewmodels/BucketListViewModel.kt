@@ -46,12 +46,7 @@ class BucketListViewModel @Inject constructor(
         // TODO("QUANDO SEM INTERNET, PUXAR DO INTERNAL STORAGE OS BUCKETS")
         viewModelScope.launch {
             try {
-                _state.update {
-                    it.copy(
-                        buckets = s3Manager.listBuckets(),
-                        supportText = CreateBucketForm.DEFAULT_MESSAGE
-                    )
-                }
+                _state.update { it.copy(buckets = s3Manager.listBuckets()) }
 
                 val bucketsToSetPrivacy = mutableListOf<MyBucket>()
                 _state.value.buckets.forEach { bucket ->
@@ -72,8 +67,10 @@ class BucketListViewModel @Inject constructor(
                         )
                         _state.update {
                             it.copy(
-                                isSetBucketsPrivacyDialog = true,
-                                bucketsPrivacy = bucketsToSetPrivacy.toList()
+                                setPrivacyBucketForm = it.setPrivacyBucketForm.copy(
+                                    isSetBucketsPrivacyDialog = true,
+                                    bucketsPrivacy = bucketsToSetPrivacy.toList()
+                                ),
                             )
                         }
                     }
@@ -227,26 +224,44 @@ class BucketListViewModel @Inject constructor(
             BucketListEvent.RegisterBucketsPrivacy -> {
                 viewModelScope.launch {
                     try {
-                        _state.value.bucketsPrivacy.forEach {
+                        _state.value.setPrivacyBucketForm.bucketsPrivacy.forEach {
                             bucketDao.updateBucket(it)
                         }
                     } catch (e: Exception) {
                         _state.value.snackBarHost.showSnackbar("Houve um erro ao registrar os buckets: ${e.localizedMessage}")
                     }
                 }
-                _state.update { it.copy(isSetBucketsPrivacyDialog = false) }
+                _state.update {
+                    it.copy(
+                        setPrivacyBucketForm = it.setPrivacyBucketForm.copy(
+                            isSetBucketsPrivacyDialog = false
+                        )
+                    )
+                }
             }
 
             is BucketListEvent.SetBucketPrivacy -> {
-                val buckets = _state.value.bucketsPrivacy.toMutableList()
+                val buckets = _state.value.setPrivacyBucketForm.bucketsPrivacy.toMutableList()
                 val newIsPrivate =
-                    buckets[event.index].copy(isPrivate = !_state.value.bucketsPrivacy[event.index].isPrivate)
+                    buckets[event.index].copy(isPrivate = !_state.value.setPrivacyBucketForm.bucketsPrivacy[event.index].isPrivate)
                 buckets[event.index] = newIsPrivate
-                _state.update { state -> state.copy(bucketsPrivacy = buckets.toList()) }
+                _state.update { state ->
+                    state.copy(
+                        setPrivacyBucketForm = state.setPrivacyBucketForm.copy(
+                            bucketsPrivacy = buckets.toList()
+                        )
+                    )
+                }
             }
 
             is BucketListEvent.SetBucketsPrivacyDialogState -> {
-                _state.update { it.copy(isSetBucketsPrivacyDialog = event.state) }
+                _state.update {
+                    it.copy(
+                        setPrivacyBucketForm = it.setPrivacyBucketForm.copy(
+                            isSetBucketsPrivacyDialog = event.state
+                        )
+                    )
+                }
             }
         }
     }
@@ -256,8 +271,10 @@ class BucketListViewModel @Inject constructor(
             is ValidationBucketNameResponse.HasCapitalLetters -> {
                 _state.update {
                     it.copy(
-                        isError = true,
-                        supportText = validation.message
+                        createBucketForm = it.createBucketForm.copy(
+                            isError = true,
+                            supportText = validation.message
+                        )
                     )
                 }
                 return 1
@@ -266,8 +283,10 @@ class BucketListViewModel @Inject constructor(
             is ValidationBucketNameResponse.IsBlank -> {
                 _state.update {
                     it.copy(
-                        isError = true,
-                        supportText = validation.message
+                        createBucketForm = it.createBucketForm.copy(
+                            isError = true,
+                            supportText = validation.message
+                        )
                     )
                 }
                 return 1
@@ -276,8 +295,10 @@ class BucketListViewModel @Inject constructor(
             is ValidationBucketNameResponse.IsEndingWithLetterOrDigit -> {
                 _state.update {
                     it.copy(
-                        isError = true,
-                        supportText = validation.message
+                        createBucketForm = it.createBucketForm.copy(
+                            isError = true,
+                            supportText = validation.message
+                        )
                     )
                 }
                 return 1
@@ -286,8 +307,10 @@ class BucketListViewModel @Inject constructor(
             is ValidationBucketNameResponse.IsTooShortOrLong -> {
                 _state.update {
                     it.copy(
-                        isError = true,
-                        supportText = validation.message
+                        createBucketForm = it.createBucketForm.copy(
+                            isError = true,
+                            supportText = validation.message
+                        )
                     )
                 }
                 return 1
@@ -296,8 +319,10 @@ class BucketListViewModel @Inject constructor(
             is ValidationBucketNameResponse.Ok -> {
                 _state.update {
                     it.copy(
-                        isError = false,
-                        supportText = validation.message
+                        createBucketForm = it.createBucketForm.copy(
+                            isError = false,
+                            supportText = validation.message
+                        )
                     )
                 }
                 return 0

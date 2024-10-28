@@ -139,9 +139,9 @@ fun BucketList(
                     label = { Text(text = "Nome do bucket") },
                     modifier = Modifier.padding(16.dp),
                     supportingText = {
-                        Text(text = state.supportText)
+                        Text(text = state.createBucketForm.supportText)
                     },
-                    isError = state.isError
+                    isError = state.createBucketForm.isError
                 )
                 MySwitch(
                     label = "Bucket privado",
@@ -166,15 +166,15 @@ fun BucketList(
                             onEvent(BucketListEvent.CreateBucket)
                         },
                         modifier = Modifier.padding(8.dp),
-                        enabled = !state.isError
+                        enabled = !state.createBucketForm.isError
                     ) {
                         Text("Confirmar")
                     }
                 }
             })
         }
-        if (state.isSetBucketsPrivacyDialog) {
-            NewBucketsDialog(buckets = state.bucketsPrivacy, onEvent = onEvent)
+        if (state.setPrivacyBucketForm.isSetBucketsPrivacyDialog) {
+            NewBucketsDialog(buckets = state.setPrivacyBucketForm.bucketsPrivacy, onEvent = onEvent)
         }
     }
 }
