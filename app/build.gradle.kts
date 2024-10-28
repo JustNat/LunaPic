@@ -128,6 +128,7 @@ dependencies {
     // coil
     implementation(libs.coil.compose)
     implementation(libs.coil)
+    implementation(libs.coil.gif)
 
     // kotlin serialization
     implementation(libs.kotlinx.serialization.json)
