@@ -7,7 +7,10 @@ import com.example.lunapic.repository.db.data.Media
 import com.example.lunapic.repository.db.data.MediaDao
 import com.example.lunapic.repository.network.CloudStorageServiceRepository
 import com.example.lunapic.storage.InternalStorageRepository
-import com.example.lunapic.ui.state.MediaListState
+import com.example.lunapic.ui.navigation.AppNavigationActions
+import com.example.lunapic.ui.navigation.Navigator
+import com.example.lunapic.ui.state.media.MediaListEvent
+import com.example.lunapic.ui.state.media.MediaListState
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
@@ -27,7 +30,8 @@ class MediaListViewModel @AssistedInject constructor(
     private val s3Manager: CloudStorageServiceRepository,
     private val mediaDao: MediaDao,
     private val bucketDao: BucketDao,
-    @Assisted private val bucketName: String
+    private val navigator: Navigator,
+    @Assisted val bucketName: String
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(MediaListState())
@@ -60,6 +64,14 @@ class MediaListViewModel @AssistedInject constructor(
             }
             _state.update {
                 it.copy(medias = internalStorage.getMedias(bucketName))
+            }
+        }
+    }
+
+    fun onEvent(event: MediaListEvent) {
+        when (event) {
+            is MediaListEvent.GoBack -> {
+                navigator.navigate(AppNavigationActions.PopBack)
             }
         }
     }

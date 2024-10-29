@@ -1,4 +1,4 @@
-package com.example.lunapic.ui.state
+package com.example.lunapic.ui.state.media
 
 import androidx.compose.material3.SnackbarHostState
 import java.io.File

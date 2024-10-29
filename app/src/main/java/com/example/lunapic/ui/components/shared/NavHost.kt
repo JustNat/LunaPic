@@ -26,13 +26,21 @@ fun MyNavHost(
 
     LaunchedEffect(navigatorState) {
         navigatorState?.let {
-            it.parcelableArguments.forEach { arg ->
-                navHostController.currentBackStackEntry?.arguments?.putParcelable(
-                    arg.key,
-                    arg.value
-                )
+            when (it.destination) {
+                is Routes.PopBack -> {
+                    navHostController.popBackStack()
+                }
+
+                else -> {
+                    it.parcelableArguments.forEach { arg ->
+                        navHostController.currentBackStackEntry?.arguments?.putParcelable(
+                            arg.key,
+                            arg.value
+                        )
+                    }
+                    navHostController.navigate(it.destination, it.navOptions)
+                }
             }
-            navHostController.navigate(it.destination, it.navOptions)
         }
     }
 
@@ -50,10 +58,11 @@ fun MyNavHost(
             val mediaListViewModel: MediaListViewModel =
                 hiltViewModel<MediaListViewModel, MediaListViewModel.Factory>(
                     creationCallback = { factory ->
-                        factory.create(bucketName = args.bucketName) }
+                        factory.create(bucketName = args.bucketName)
+                    }
                 )
             val state by mediaListViewModel.state.collectAsStateWithLifecycle()
-            MediaList(state)
+            MediaList(state, mediaListViewModel.bucketName, onEvent = mediaListViewModel::onEvent)
         }
     }
 

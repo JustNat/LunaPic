@@ -3,6 +3,7 @@ package com.example.lunapic.ui.components.main
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -13,9 +14,10 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.rounded.Add
-import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material3.Card
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.FabPosition
 import androidx.compose.material3.Icon
@@ -24,18 +26,23 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.example.lunapic.ui.components.shared.MyAlertDialog
 import com.example.lunapic.ui.components.shared.MyCustomDialog
 import com.example.lunapic.ui.components.shared.MySwitch
 import com.example.lunapic.ui.state.bucket.BucketListEvent
 import com.example.lunapic.ui.state.bucket.BucketListState
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BucketList(
     state: BucketListState,
@@ -52,16 +59,23 @@ fun BucketList(
                 Text(text = "Adicionar bucket")
             }
         },
+        topBar = {
+            TopAppBar(
+                title = { Greeting(name = "Gabriel") },
+                scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
+            )
+        }
     ) {
         Column(
             modifier = Modifier.fillMaxSize()
         ) {
-            Greeting(name = "Gabriel", vpadding = 6.dp)
+
             if (state.buckets.isNotEmpty()) {
                 LazyVerticalGrid(
                     columns = GridCells.Fixed(2),
                     horizontalArrangement = Arrangement.spacedBy(Dp(6f)),
                     verticalArrangement = Arrangement.spacedBy(Dp(6f)),
+                    contentPadding = PaddingValues(horizontal = 8.dp),
                     modifier = Modifier.padding(it)
                 ) {
                     items(state.buckets.size) { index ->
@@ -89,7 +103,7 @@ fun BucketList(
                                         }
                                 )
                                 Icon(
-                                    imageVector = Icons.Rounded.Delete,
+                                    imageVector = Icons.Outlined.Delete,
                                     contentDescription = "Excluir bucket",
                                     modifier = Modifier
                                         .size(24.dp)
@@ -133,6 +147,13 @@ fun BucketList(
             MyCustomDialog(onDismissRequest = {
                 onEvent(BucketListEvent.SetCreateDialogState(false))
             }, content = {
+                Row(modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 16.dp),
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Text(text = "Novo Bucket", fontWeight = FontWeight.Medium, fontSize = 18.sp)
+                }
                 OutlinedTextField(
                     value = state.createBucketForm.bucketName,
                     onValueChange = { name -> onEvent(BucketListEvent.SetBucketName(name.filterNot { it.isWhitespace() })) },
@@ -144,7 +165,8 @@ fun BucketList(
                     isError = state.createBucketForm.isError
                 )
                 MySwitch(
-                    label = "Bucket privado",
+                    label = "Privado",
+                    hPadding = 16.dp,
                     value = state.createBucketForm.isPrivate,
                     onCheckedChange = { value -> onEvent(BucketListEvent.SetIsPrivate(value)) }
                 )

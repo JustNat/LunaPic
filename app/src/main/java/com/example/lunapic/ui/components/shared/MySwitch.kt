@@ -12,7 +12,7 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun MySwitch(
     label: String = "",
-    hPadding: Dp = 8.dp,
+    hPadding: Dp = 0.dp,
     vPadding: Dp = 0.dp,
     value: Boolean,
     onCheckedChange: (Boolean) -> Unit

@@ -20,8 +20,8 @@ import java.time.Month
 fun Greeting(
     dateTime: LocalDateTime = LocalDateTime.now(),
     name : String,
-    hpadding : Dp = 0.dp,
-    vpadding : Dp = 0.dp
+    hPadding : Dp = 0.dp,
+    vPadding : Dp = 0.dp
 ) {
     val greeting : String =
         if (dateTime.month == Month.DECEMBER && dateTime.dayOfMonth == 25 ) {
@@ -46,7 +46,7 @@ fun Greeting(
                 else -> "Boa noite, $name"
             }
         }
-    Box(modifier = Modifier.padding(vertical = vpadding, horizontal = hpadding)) {
+    Box(modifier = Modifier.padding(vertical = vPadding, horizontal = hPadding)) {
         Text(
             text = greeting,
             style = MaterialTheme.typography.titleLarge,
