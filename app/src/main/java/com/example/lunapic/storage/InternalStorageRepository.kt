@@ -1,6 +1,5 @@
 package com.example.lunapic.storage
 
-import aws.smithy.kotlin.runtime.content.ByteStream
 import java.io.File
 
 interface InternalStorageRepository {

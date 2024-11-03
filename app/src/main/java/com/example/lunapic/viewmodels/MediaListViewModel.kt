@@ -11,6 +11,7 @@ import com.example.lunapic.ui.navigation.AppNavigationActions
 import com.example.lunapic.ui.navigation.Navigator
 import com.example.lunapic.ui.state.media.MediaListEvent
 import com.example.lunapic.ui.state.media.MediaListState
+import com.example.lunapic.ui.state.media.MediaState
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
@@ -63,7 +64,9 @@ class MediaListViewModel @AssistedInject constructor(
                 _state.value.snackBarHostState.showSnackbar("Ocorreu um erro: {${e.localizedMessage}}")
             }
             _state.update {
-                it.copy(medias = internalStorage.getMedias(bucketName))
+                it.copy(medias = internalStorage.getMedias(bucketName).map { mediaFile ->
+                    MediaState(file = mediaFile)
+                })
             }
         }
     }
@@ -73,6 +76,39 @@ class MediaListViewModel @AssistedInject constructor(
             is MediaListEvent.GoBack -> {
                 navigator.navigate(AppNavigationActions.PopBack)
             }
+
+            is MediaListEvent.DeselectAll -> {
+                _state.update {
+                    it.copy(medias = it.medias.map { mediaState ->
+                        mediaState.copy(
+                            isSelected = false
+                        )
+                    })
+                }
+            }
+
+            MediaListEvent.DeleteMedias -> {
+                // TODO
+            }
+
+            is MediaListEvent.SetSelectedMedia -> {
+                val auxList = _state.value.medias.map {
+                    if (event.mediaState == it) {
+                        it.copy(isSelected = !event.mediaState.isSelected)
+                    } else it
+                }
+                _state.update { it.copy(medias = auxList) }
+            }
+
+            MediaListEvent.SelectAll -> {
+                _state.update {
+                    it.copy(medias = it.medias.map { mediaState -> mediaState.copy(isSelected = true) })
+                }
+            }
+
+            is MediaListEvent.SetScrollableState -> {
+                _state.update { it.copy(isLazyGridScrollable = event.isScrollable) }
+            }
         }
     }
 
@@ -80,4 +116,6 @@ class MediaListViewModel @AssistedInject constructor(
     interface Factory {
         fun create(bucketName: String): MediaListViewModel
     }
+
 }
+
