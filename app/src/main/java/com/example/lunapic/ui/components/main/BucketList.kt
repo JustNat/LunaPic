@@ -195,8 +195,11 @@ fun BucketList(
                 }
             })
         }
-        if (state.setPrivacyBucketForm.isSetBucketsPrivacyDialog) {
-            NewBucketsDialog(buckets = state.setPrivacyBucketForm.bucketsPrivacy, onEvent = onEvent)
-        }
+        NewBucketsDialog(
+            state = state.bucketsPrivacy.isNotEmpty(),
+            buckets = state.bucketsPrivacy,
+            onEvent = onEvent
+        )
+
     }
 }

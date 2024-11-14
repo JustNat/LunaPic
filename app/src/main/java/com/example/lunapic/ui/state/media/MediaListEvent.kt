@@ -7,4 +7,5 @@ sealed interface MediaListEvent {
     data object DeleteMedias : MediaListEvent
     data object SelectAll : MediaListEvent
     data class SetScrollableState(val isScrollable: Boolean) : MediaListEvent
+    data class SetDeleteDialogState(val state: Boolean) : MediaListEvent
 }

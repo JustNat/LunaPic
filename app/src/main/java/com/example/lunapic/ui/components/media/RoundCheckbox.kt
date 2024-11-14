@@ -35,6 +35,7 @@ fun RoundCheckbox(
     onCheckedChange: ((Boolean) -> Unit),
     padding: Dp = 16.dp,
     size: Dp = 24.dp,
+    iconSize : Dp = 20.dp,
     uncheckedColor: Color = Color.LightGray,
     checkedColor: Color = MaterialTheme.colorScheme.primary,
 ) {
@@ -60,7 +61,7 @@ fun RoundCheckbox(
             exit = scaleOut()
         ) {
             Icon(
-                modifier = Modifier.size(20.dp),
+                modifier = Modifier.size(iconSize),
                 imageVector = Icons.Sharp.Done,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.onPrimary

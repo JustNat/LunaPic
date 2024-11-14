@@ -16,6 +16,8 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.onStart
@@ -44,30 +46,37 @@ class MediaListViewModel @AssistedInject constructor(
         // TODO("Verificar primeiro se as mídias estão presentes no armazenamento do app")
         viewModelScope.launch {
             try {
-                bucketDao.updateLastUpdatedAt(
-                    bucketName,
-                    OffsetDateTime.now(ZoneId.of("America/Sao_Paulo"))
-                )
                 val medias = s3Manager.getObjects(bucketName)
-                medias.forEach { media ->
-                    internalStorage.saveMedia(
-                        fileName = media.name,
-                        fileBody = media.body,
-                        bucketName = media.bucket,
-                        size = media.size
-                    )
-                    if (mediaDao.isMediaRegistered(media.name) == 0) {
-                        mediaDao.insertMedia(Media(name = media.name, bucket = bucketName))
+                medias.map { media ->
+                    async {
+                        internalStorage.saveMedia(
+                            fileName = media.name,
+                            fileBody = media.body,
+                            bucketName = media.bucket,
+                            size = media.size
+                        )
+
+                    }.also {
+                        launch {
+                            if (mediaDao.isMediaRegistered(media.name) == 0) {
+                                mediaDao.insertMedia(Media(name = media.name, bucket = bucketName))
+                            }
+                        }
                     }
-                }
+                }.awaitAll()
             } catch (e: Exception) {
                 _state.value.snackBarHostState.showSnackbar("Ocorreu um erro: {${e.localizedMessage}}")
             }
             _state.update {
-                it.copy(medias = internalStorage.getMedias(bucketName).map { mediaFile ->
-                    MediaState(file = mediaFile)
-                })
+                it.copy(
+                    medias = internalStorage.getMedias(bucketName).map { mediaFile ->
+                        MediaState(file = mediaFile)
+                    }
+                )
             }
+            bucketDao.updateLastUpdatedAt(
+                bucketName, OffsetDateTime.now(ZoneId.of("America/Sao_Paulo"))
+            )
         }
     }
 
@@ -88,7 +97,46 @@ class MediaListViewModel @AssistedInject constructor(
             }
 
             MediaListEvent.DeleteMedias -> {
-                // TODO
+                viewModelScope.launch {
+                    try {
+                        onEvent(MediaListEvent.SetDeleteDialogState(false))
+
+                        val mediasToDelete = _state.value.medias.filter { it.isSelected }
+                        val mediaKeysToDelete = mediasToDelete.map { it.file.name }
+
+                        val response = async {
+                            s3Manager.deleteObjects(
+                                bucketName = bucketName,
+                                keys = mediaKeysToDelete
+                            ).deleted?.map { it.key ?: "" } ?: emptyList()
+                        }.await()
+
+                        mediasToDelete.map {
+                            async {
+                                internalStorage.deleteMedia(it.file)
+                                mediaDao.deleteMedia(Media(it.file.name, bucketName))
+                            }
+                        }.awaitAll()
+
+                        _state.update {
+                            it.copy(
+                                medias = it.medias.filterNot { mediaState ->
+                                    mediasToDelete.contains(
+                                        mediaState
+                                    )
+                                },
+                                deleteDialogState = false
+                            )
+                        }
+
+                        if (mediaKeysToDelete.containsAll(response) && mediasToDelete.size == response.size) {
+                            _state.value.snackBarHostState.showSnackbar("Itens deletados com sucesso.")
+                        }
+
+                    } catch (e: Exception) {
+                        _state.value.snackBarHostState.showSnackbar(e.localizedMessage ?: "")
+                    }
+                }
             }
 
             is MediaListEvent.SetSelectedMedia -> {
@@ -101,13 +149,23 @@ class MediaListViewModel @AssistedInject constructor(
             }
 
             MediaListEvent.SelectAll -> {
-                _state.update {
-                    it.copy(medias = it.medias.map { mediaState -> mediaState.copy(isSelected = true) })
+                if (_state.value.medias.all { it.isSelected }) {
+                    _state.update {
+                        it.copy(medias = it.medias.map { mediaState -> mediaState.copy(isSelected = false) })
+                    }
+                } else {
+                    _state.update {
+                        it.copy(medias = it.medias.map { mediaState -> mediaState.copy(isSelected = true) })
+                    }
                 }
             }
 
             is MediaListEvent.SetScrollableState -> {
                 _state.update { it.copy(isLazyGridScrollable = event.isScrollable) }
+            }
+
+            is MediaListEvent.SetDeleteDialogState -> {
+                _state.update { it.copy(deleteDialogState = event.state) }
             }
         }
     }

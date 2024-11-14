@@ -7,4 +7,5 @@ interface InternalStorageRepository {
     suspend fun getMedias(bucketName: String) : List<File>
     suspend fun saveBucket(bucketName : String)
     suspend fun deleteBucket(bucketName: String)
+    suspend fun deleteMedia(file: File)
 }

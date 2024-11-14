@@ -5,7 +5,6 @@ import androidx.lifecycle.viewModelScope
 import aws.sdk.kotlin.services.s3.model.Bucket as AwsBucket
 import com.example.lunapic.repository.db.data.Bucket as MyBucket
 import aws.sdk.kotlin.services.s3.model.BucketAlreadyExists
-import com.example.lunapic.repository.db.data.Bucket
 import com.example.lunapic.storage.InternalStorageRepository
 import com.example.lunapic.repository.db.data.BucketDao
 import com.example.lunapic.repository.network.CloudStorageServiceRepository
@@ -17,6 +16,8 @@ import com.example.lunapic.ui.state.bucket.CreateBucketForm
 import com.example.lunapic.ui.state.bucket.ValidationBucketNameResponse
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.onStart
@@ -47,37 +48,31 @@ class BucketListViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 _state.update { it.copy(buckets = s3Manager.listBuckets()) }
-
                 val bucketsToSetPrivacy = mutableListOf<MyBucket>()
                 _state.value.buckets.forEach { bucket ->
-                    if (bucketDao.isBucketRegistered(bucket.name ?: "") == 0) {
+                    if (bucketDao.isBucketRegistered(bucket.name.toString()) == 0) {
                         bucketDao.insertBucket(
-                            Bucket(
-                                name = bucket.name ?: "",
-                                isPrivate = false,
-                                lastUpdatedAt = OffsetDateTime.now(ZoneId.of("America/Sao_Paulo"))
-                            )
-                        )
-                        bucketsToSetPrivacy.add(
                             MyBucket(
-                                bucket.name ?: "",
+                                bucket.name.toString(),
                                 false,
                                 OffsetDateTime.now(ZoneId.of("America/Sao_Paulo"))
                             )
                         )
-                        _state.update {
-                            it.copy(
-                                setPrivacyBucketForm = it.setPrivacyBucketForm.copy(
-                                    isSetBucketsPrivacyDialog = true,
-                                    bucketsPrivacy = bucketsToSetPrivacy.toList()
-                                ),
+                        bucketsToSetPrivacy.add(
+                            MyBucket(
+                                bucket.name.toString(),
+                                false,
+                                OffsetDateTime.now(ZoneId.of("America/Sao_Paulo"))
                             )
-                        }
+                        )
                     }
+
                 }
 
+                _state.update { it.copy(bucketsPrivacy = bucketsToSetPrivacy) }
+
                 _state.value.buckets.forEach { bucket ->
-                    internalStorage.saveBucket(bucket.name.toString())
+                    launch { internalStorage.saveBucket(bucket.name.toString()) }
                 }
             } catch (e: Exception) {
                 _state.value.snackBarHost.showSnackbar("Houve um erro ao carregar os buckets. ${e.localizedMessage}")
@@ -224,45 +219,33 @@ class BucketListViewModel @Inject constructor(
             BucketListEvent.RegisterBucketsPrivacy -> {
                 viewModelScope.launch {
                     try {
-                        _state.value.setPrivacyBucketForm.bucketsPrivacy.forEach {
-                            bucketDao.updateBucket(it)
+                        _state.value.bucketsPrivacy.map {
+                            async { bucketDao.updateBucket(it) }
+                        }.awaitAll()
+
+                        _state.update {
+                            it.copy(bucketsPrivacy = emptyList())
                         }
                     } catch (e: Exception) {
                         _state.value.snackBarHost.showSnackbar("Houve um erro ao registrar os buckets: ${e.localizedMessage}")
                     }
                 }
-                _state.update {
-                    it.copy(
-                        setPrivacyBucketForm = it.setPrivacyBucketForm.copy(
-                            isSetBucketsPrivacyDialog = false
-                        )
-                    )
-                }
             }
 
             is BucketListEvent.SetBucketPrivacy -> {
-                val buckets = _state.value.setPrivacyBucketForm.bucketsPrivacy.toMutableList()
-                val newIsPrivate =
-                    buckets[event.index].copy(isPrivate = !_state.value.setPrivacyBucketForm.bucketsPrivacy[event.index].isPrivate)
-                buckets[event.index] = newIsPrivate
+                val buckets = _state.value.bucketsPrivacy
+                val newIsPrivate = buckets[event.index].copy(isPrivate = !buckets[event.index].isPrivate)
                 _state.update { state ->
                     state.copy(
-                        setPrivacyBucketForm = state.setPrivacyBucketForm.copy(
-                            bucketsPrivacy = buckets.toList()
-                        )
+                        bucketsPrivacy = buckets.map {
+                            if (it.name == newIsPrivate.name) {
+                                newIsPrivate
+                            } else it
+                        }
                     )
                 }
             }
 
-            is BucketListEvent.SetBucketsPrivacyDialogState -> {
-                _state.update {
-                    it.copy(
-                        setPrivacyBucketForm = it.setPrivacyBucketForm.copy(
-                            isSetBucketsPrivacyDialog = event.state
-                        )
-                    )
-                }
-            }
         }
     }
 

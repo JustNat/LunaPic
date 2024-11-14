@@ -56,13 +56,20 @@ class InternalStorageManager @Inject constructor(
         }
     }
 
-    override suspend fun deleteBucket(bucketName: String) {
+    override suspend fun deleteBucket(bucketName: String) : Unit = withContext(Dispatchers.IO) {
         val directory = File(internalDir, bucketName)
         directory.delete()
+    }
+
+    override suspend fun deleteMedia(file: File) : Unit = withContext(Dispatchers.IO){
+        synchronized(fileLock) {
+            file.delete()
+        }
     }
 
     private fun getAvailableStorage(): Long {
         val stat = StatFs(internalDir.absolutePath)
         return stat.blockSizeLong * stat.availableBlocksLong
     }
+
 }

@@ -49,7 +49,8 @@ fun MediaListTopBar(
                 RoundCheckbox(
                     checked = medias.all { it.isSelected },
                     onCheckedChange = { onEvent(MediaListEvent.SelectAll) },
-                    size = 18.dp
+                    size = 18.dp,
+                    iconSize = 16.dp
                 )
             }
             AnimatedVisibility(
@@ -57,7 +58,7 @@ fun MediaListTopBar(
                 enter = scaleIn(animationSpec = tween(durationMillis = 100)),
                 exit = scaleOut(animationSpec = tween(durationMillis = 100))
             ) {
-                IconButton(onClick = { onEvent(MediaListEvent.DeleteMedias) }) {
+                IconButton(onClick = { onEvent(MediaListEvent.SetDeleteDialogState(true)) }) {
                     Icon(
                         imageVector = Icons.Outlined.Delete,
                         contentDescription = "Excluir"

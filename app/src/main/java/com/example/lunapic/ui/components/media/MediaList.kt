@@ -79,6 +79,7 @@ fun MediaList(state: MediaListState, bucketName: String, onEvent: (MediaListEven
                 }
             }
         }
+        MediaDeleteDialog(state = state.deleteDialogState, onEvent = onEvent)
     }
 
 }

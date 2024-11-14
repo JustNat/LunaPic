@@ -23,57 +23,53 @@ import com.example.lunapic.ui.state.bucket.BucketListEvent
 import java.time.OffsetDateTime
 
 @Composable
-fun NewBucketsDialog(buckets: List<Bucket>, onEvent: (BucketListEvent) -> Unit) {
-    MyCustomDialog(onDismissRequest = {}) {
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
-            item {
-                Text(text = "Os seguintes novos buckets foram registrado, defina-os como privados ou não:")
-            }
-            items(buckets.size) { index: Int ->
-                Row(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(top = 8.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
+fun NewBucketsDialog(state: Boolean, buckets: List<Bucket>, onEvent: (BucketListEvent) -> Unit) {
+    if (state) {
+        MyCustomDialog(onDismissRequest = {}) {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                item {
+                    Text(text = "Os seguintes novos buckets foram registrado, defina-os como privados ou não:")
+                }
+                items(buckets.size) { index: Int ->
+                    Row(
                         modifier = Modifier
-                            .clipToBounds()
-                            .weight(1f),
-                        text = buckets[index].name,
-                        overflow = TextOverflow.Ellipsis,
-                        maxLines = 2
-                    )
-                    MySwitch(
-                        value = buckets[index].isPrivate,
-                        onCheckedChange = { onEvent(BucketListEvent.SetBucketPrivacy(index)) }
-                    )
+                            .fillMaxSize()
+                            .padding(top = 8.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            modifier = Modifier
+                                .clipToBounds()
+                                .weight(1f),
+                            text = buckets[index].name,
+                            overflow = TextOverflow.Ellipsis,
+                            maxLines = 2
+                        )
+                        MySwitch(
+                            value = buckets[index].isPrivate,
+                            onCheckedChange = { onEvent(BucketListEvent.SetBucketPrivacy(index)) }
+                        )
+                    }
                 }
             }
-        }
-        Row(
-            modifier = Modifier
-                .fillMaxWidth(),
-            horizontalArrangement = Arrangement.End,
-        ) {
-            TextButton(
-                onClick = { onEvent(BucketListEvent.SetBucketsPrivacyDialogState(false)) },
-                modifier = Modifier.padding(8.dp),
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                horizontalArrangement = Arrangement.End,
             ) {
-                Text("Cancelar")
-            }
-            TextButton(
-                onClick = { onEvent(BucketListEvent.RegisterBucketsPrivacy) },
-                modifier = Modifier.padding(8.dp)
-            ) {
-                Text("Confirmar")
+                TextButton(
+                    onClick = { onEvent(BucketListEvent.RegisterBucketsPrivacy) },
+                    modifier = Modifier.padding(8.dp)
+                ) {
+                    Text("Confirmar")
+                }
             }
         }
     }
@@ -95,5 +91,5 @@ private fun NewBucketsDialogPreview() {
         )
     )
 
-     NewBucketsDialog(buckets = buckets, onEvent = {})
+     NewBucketsDialog(state = true, buckets = buckets, onEvent = {})
 }

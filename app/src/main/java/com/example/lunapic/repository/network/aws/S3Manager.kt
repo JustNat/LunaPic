@@ -6,9 +6,13 @@ import aws.sdk.kotlin.services.s3.model.Bucket
 import aws.sdk.kotlin.services.s3.model.BucketLocationConstraint
 import aws.sdk.kotlin.services.s3.model.CreateBucketConfiguration
 import aws.sdk.kotlin.services.s3.model.CreateBucketRequest
+import aws.sdk.kotlin.services.s3.model.Delete
 import aws.sdk.kotlin.services.s3.model.DeleteBucketRequest
+import aws.sdk.kotlin.services.s3.model.DeleteObjectsRequest
+import aws.sdk.kotlin.services.s3.model.DeleteObjectsResponse
 import aws.sdk.kotlin.services.s3.model.GetObjectRequest
 import aws.sdk.kotlin.services.s3.model.ListObjectsV2Request
+import aws.sdk.kotlin.services.s3.model.ObjectIdentifier
 import aws.smithy.kotlin.runtime.auth.awscredentials.Credentials
 import aws.smithy.kotlin.runtime.content.toByteArray
 import aws.smithy.kotlin.runtime.io.use
@@ -17,6 +21,7 @@ import com.example.lunapic.BuildConfig
 import com.example.lunapic.repository.network.CloudStorageServiceRepository
 import com.example.lunapic.repository.network.aws.data.Media
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
@@ -32,6 +37,7 @@ class S3Manager @Inject constructor() : CloudStorageServiceRepository {
             )
             endpointUrl = Url.parse(BuildConfig.AWS_ENDPOINT)
             region = "sa-east-1"
+            forcePathStyle = BuildConfig.FORCED_PATH_STYLE
         }
     }
 
@@ -77,28 +83,49 @@ class S3Manager @Inject constructor() : CloudStorageServiceRepository {
     }
 
     override suspend fun getObjects(bucketName: String): List<Media> = withContext(Dispatchers.IO) {
-        val keys = listObjects(bucketName)
+        val keys = async { listObjects(bucketName) }.await()
         val byteStreams = mutableListOf<Media>()
-        val client = buildClient()
 
-        keys.forEach { obj ->
-            client.getObject(input = GetObjectRequest {
-                bucket = bucketName
-                key = obj.key
-            }) { response ->
-                response.body?.let { body ->
-                    byteStreams.add(
-                        Media(
-                            name = obj.key ?: "",
-                            body = body.toByteArray(),
-                            size = obj.size ?: 0,
-                            bucket = bucketName
-                        )
-                    )
+        buildClient().use { client ->
+            keys.map { obj ->
+                async {
+                    client.getObject(input = GetObjectRequest {
+                        bucket = bucketName
+                        key = obj.key
+                    }) { response ->
+                        response.body?.let { body ->
+                            response.metadata?.keys
+                            byteStreams.add(
+                                Media(
+                                    name = obj.key ?: "",
+                                    body = body.toByteArray(),
+                                    size = obj.size ?: 0,
+                                    bucket = bucketName
+                                )
+                            )
+                        }
+                    }
                 }
-            }
+            }.mapNotNull { it.await() }
         }
-        client.close()
-        byteStreams.toList()
+        byteStreams
     }
+
+    override suspend fun deleteObjects(bucketName: String, keys: List<String>) : DeleteObjectsResponse = withContext(Dispatchers.IO) {
+        val objects = keys.map { ObjectIdentifier { key = it } }
+
+        val response = buildClient().use { client ->
+            client.deleteObjects(
+                input = DeleteObjectsRequest {
+                    bucket = bucketName
+                    delete = Delete {
+                        this.objects = objects
+                        quiet = false
+                    }
+                }
+            )
+        }
+        response
+    }
+
 }

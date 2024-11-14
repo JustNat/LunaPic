@@ -37,6 +37,7 @@ android {
             "AWS_SECRET_ACCESS_KEY",
             "\"1234567890123456789012345678901234567890\""
         )
+        buildConfigField(type = "boolean", "FORCED_PATH_STYLE", value = "true")
     }
 
     flavorDimensions += "environment"
@@ -71,6 +72,7 @@ android {
                 project.findProperty("AWS_SECRET_ACCESS_KEY").toString()
             )
             buildConfigField("boolean", "COIL_DEBUGGER", "false")
+            buildConfigField(type = "boolean", "FORCED_PATH_STYLE", value = "false")
         }
     }
 

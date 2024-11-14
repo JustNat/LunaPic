@@ -1,7 +1,5 @@
 package com.example.lunapic.repository.network.aws.data
 
-import aws.smithy.kotlin.runtime.content.ByteStream
-
 data class Media(
     val name : String,
     val body : ByteArray,

@@ -12,6 +12,5 @@ sealed interface BucketListEvent {
     data class SetDeleteDialogState(val state: Boolean) : BucketListEvent
     data class NavigateToMediaScreen(val bucketName: String) : BucketListEvent
     data object RegisterBucketsPrivacy : BucketListEvent
-    data class SetBucketsPrivacyDialogState(val state: Boolean) : BucketListEvent
     data class SetBucketPrivacy(val index: Int) : BucketListEvent
 }
