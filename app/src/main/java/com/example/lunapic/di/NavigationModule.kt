@@ -1,7 +1,7 @@
 package com.example.lunapic.di
 
-import com.example.lunapic.ui.navigation.MyNavigator
-import com.example.lunapic.ui.navigation.Navigator
+import com.example.lunapic.ui.routing.MyNavigator
+import com.example.lunapic.ui.routing.Navigator
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn

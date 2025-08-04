@@ -12,8 +12,8 @@ import coil3.SingletonImageLoader
 import coil3.memory.MemoryCache
 import coil3.request.CachePolicy
 import coil3.util.DebugLogger
-import com.example.lunapic.ui.components.shared.MyNavHost
-import com.example.lunapic.ui.navigation.Navigator
+import com.example.lunapic.ui.common.MyNavHost
+import com.example.lunapic.ui.routing.Navigator
 import com.example.lunapic.ui.theme.LunaPicTheme
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
