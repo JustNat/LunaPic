@@ -1,4 +1,4 @@
-package com.example.lunapic.repositories.network.aws.data
+package com.example.lunapic.data.repositories.network.aws.models
 
 data class Media(
     val name : String,

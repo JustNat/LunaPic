@@ -2,11 +2,11 @@ package com.example.lunapic.ui.media
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.lunapic.repositories.db.data.BucketDao
-import com.example.lunapic.repositories.db.data.Media
-import com.example.lunapic.repositories.db.data.MediaDao
-import com.example.lunapic.repositories.network.CloudStorageRepository
-import com.example.lunapic.repositories.storage.InternalStorageRepository
+import com.example.lunapic.db.data.BucketDao
+import com.example.lunapic.db.data.Media
+import com.example.lunapic.db.data.MediaDao
+import com.example.lunapic.data.repositories.network.CloudStorageRepository
+import com.example.lunapic.data.repositories.storage.InternalStorageRepository
 import com.example.lunapic.ui.routing.AppNavigationActions
 import com.example.lunapic.ui.routing.Navigator
 import com.example.lunapic.ui.media.state.MediaListEvents

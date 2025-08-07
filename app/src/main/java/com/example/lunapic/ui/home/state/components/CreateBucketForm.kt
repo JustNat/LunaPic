@@ -1,7 +1,7 @@
 package com.example.lunapic.ui.home.state.components
 
 data class CreateBucketForm(
-    val isCreateBucketDialog: Boolean = false,
+    val isOpen: Boolean = false,
     val bucketName: String = "",
     val isPrivate: Boolean = false,
     val isError: Boolean = false,

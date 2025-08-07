@@ -1,9 +1,9 @@
 package com.example.lunapic.di
 
-import com.example.lunapic.repositories.network.CloudStorageRepository
-import com.example.lunapic.repositories.network.aws.S3Repository
-import com.example.lunapic.repositories.storage.DefaultInternalStorageRepository
-import com.example.lunapic.repositories.storage.InternalStorageRepository
+import com.example.lunapic.data.repositories.network.CloudStorageRepository
+import com.example.lunapic.data.repositories.network.aws.S3Repository
+import com.example.lunapic.data.repositories.storage.DefaultInternalStorageRepository
+import com.example.lunapic.data.repositories.storage.InternalStorageRepository
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn

@@ -2,9 +2,9 @@ package com.example.lunapic.di
 
 import android.content.Context
 import androidx.room.Room
-import com.example.lunapic.repositories.db.LunaPicDatabase
-import com.example.lunapic.repositories.db.data.BucketDao
-import com.example.lunapic.repositories.db.data.MediaDao
+import com.example.lunapic.db.LunaPicDatabase
+import com.example.lunapic.db.data.BucketDao
+import com.example.lunapic.db.data.MediaDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

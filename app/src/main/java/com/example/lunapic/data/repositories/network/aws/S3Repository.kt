@@ -1,8 +1,7 @@
-package com.example.lunapic.repositories.network.aws
+package com.example.lunapic.data.repositories.network.aws
 
 import aws.sdk.kotlin.runtime.auth.credentials.StaticCredentialsProvider
 import aws.sdk.kotlin.services.s3.S3Client
-import aws.sdk.kotlin.services.s3.model.Bucket
 import aws.sdk.kotlin.services.s3.model.BucketLocationConstraint
 import aws.sdk.kotlin.services.s3.model.CreateBucketConfiguration
 import aws.sdk.kotlin.services.s3.model.CreateBucketRequest
@@ -18,8 +17,10 @@ import aws.smithy.kotlin.runtime.content.toByteArray
 import aws.smithy.kotlin.runtime.io.use
 import aws.smithy.kotlin.runtime.net.url.Url
 import com.example.lunapic.BuildConfig
-import com.example.lunapic.repositories.network.CloudStorageRepository
-import com.example.lunapic.repositories.network.aws.data.Media
+import com.example.lunapic.data.repositories.network.CloudStorageRepository
+import com.example.lunapic.data.repositories.network.aws.models.CloudBucket
+import com.example.lunapic.data.repositories.network.aws.models.Media
+import com.example.lunapic.utils.extensions.toCloudModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.withContext
@@ -75,19 +76,19 @@ class S3Repository @Inject constructor() : CloudStorageRepository {
         }
     }
 
-    override suspend fun listBuckets(): List<Bucket> = withContext(Dispatchers.IO) {
-        buildClient().use {
-            val response = it.listBuckets().buckets ?: emptyList()
-            response
+    override suspend fun listBuckets(): List<CloudBucket> = withContext(Dispatchers.IO) {
+        buildClient().use { client ->
+            val response = client.listBuckets().buckets ?: emptyList()
+            response.map { bucket -> bucket.toCloudModel()}.sortedBy { bucket -> bucket.name }
         }
     }
 
     override suspend fun getObjects(bucketName: String): List<Media> = withContext(Dispatchers.IO) {
-        val keys = async { listObjects(bucketName) }.await()
+        val objects = async { listObjects(bucketName) }.await()
         val byteStreams = mutableListOf<Media>()
 
         buildClient().use { client ->
-            keys.map { obj ->
+            objects.map { obj ->
                 async {
                     client.getObject(input = GetObjectRequest {
                         bucket = bucketName
@@ -111,7 +112,10 @@ class S3Repository @Inject constructor() : CloudStorageRepository {
         byteStreams
     }
 
-    override suspend fun deleteObjects(bucketName: String, keys: List<String>) : DeleteObjectsResponse = withContext(Dispatchers.IO) {
+    override suspend fun deleteObjects(
+        bucketName: String,
+        keys: List<String>
+    ): DeleteObjectsResponse = withContext(Dispatchers.IO) {
         val objects = keys.map { ObjectIdentifier { key = it } }
 
         val response = buildClient().use { client ->

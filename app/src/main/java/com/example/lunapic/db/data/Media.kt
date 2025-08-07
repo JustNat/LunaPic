@@ -1,4 +1,4 @@
-package com.example.lunapic.repositories.db.data
+package com.example.lunapic.db.data
 
 import androidx.room.Entity
 import androidx.room.ForeignKey
