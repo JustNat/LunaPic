@@ -142,7 +142,6 @@ class DefaultInternalStorageRepository @Inject constructor(
         }
     }
 
-
     private fun getAvailableStorage(): Long {
         val stat = StatFs(internalDir.absolutePath)
         return stat.blockSizeLong * stat.availableBlocksLong

@@ -7,7 +7,7 @@ import com.example.lunapic.ui.home.state.components.CreateBucketForm
 
 data class HomeScreenState(
     val buckets : List<Bucket> = emptyList(),
-    val selectedBucket : Int = -1,
+    val selectedBucket : String? = null,
     val isDeleteBucketDialogOpen : Boolean = false,
     val createBucketForm: CreateBucketForm = CreateBucketForm(),
     val bucketsCreatedOutsideTheApp: List<OutOfAppCreatedBucketDTO>? = null,

@@ -6,7 +6,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -21,7 +21,10 @@ import com.example.lunapic.ui.common.MySwitch
 import com.example.lunapic.ui.home.state.HomeScreenEvents
 
 @Composable
-fun NewBucketsDialog(buckets: List<OutOfAppCreatedBucketDTO>?, onEvent: (HomeScreenEvents) -> Unit) {
+fun NewBucketsDialog(
+    buckets: List<OutOfAppCreatedBucketDTO>?,
+    onEvent: (HomeScreenEvents) -> Unit
+) {
     val isBucketListEmpty = buckets?.isEmpty() ?: true
     if (!isBucketListEmpty) {
         MyCustomDialog(onDismissRequest = {}) {
@@ -35,7 +38,7 @@ fun NewBucketsDialog(buckets: List<OutOfAppCreatedBucketDTO>?, onEvent: (HomeScr
                 item {
                     Text(text = "Os seguintes buckets foram cadastrados fora do âmbito do app, defina a privacidade de cada um.")
                 }
-                itemsIndexed(buckets) { index: Int, bucket: OutOfAppCreatedBucketDTO ->
+                items(buckets) { bucket: OutOfAppCreatedBucketDTO ->
                     Row(
                         modifier = Modifier
                             .fillMaxSize()
@@ -53,7 +56,7 @@ fun NewBucketsDialog(buckets: List<OutOfAppCreatedBucketDTO>?, onEvent: (HomeScr
                         )
                         MySwitch(
                             value = bucket.isPrivate,
-                            onCheckedChange = { onEvent(HomeScreenEvents.SetBucketPrivacy(index)) }
+                            onCheckedChange = { onEvent(HomeScreenEvents.SetBucketPrivacy(bucket.name)) }
                         )
                     }
                 }

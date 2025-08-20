@@ -11,7 +11,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.itemsIndexed
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Delete
@@ -32,9 +32,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.example.lunapic.domain.entities.Bucket
-import com.example.lunapic.ui.common.MyAlertDialog
 import com.example.lunapic.ui.home.components.CreateBucketDialog
+import com.example.lunapic.ui.home.components.DeleteBucketDialog
 import com.example.lunapic.ui.home.components.Greeting
 import com.example.lunapic.ui.home.components.NewBucketsDialog
 import com.example.lunapic.ui.home.state.HomeScreenEvents
@@ -73,7 +72,7 @@ fun HomeScreen(
                     contentPadding = PaddingValues(horizontal = 8.dp),
                     modifier = Modifier.padding(it)
                 ) {
-                    itemsIndexed(state.buckets) { index: Int, bucket: Bucket ->
+                    items(state.buckets) { bucket ->
                         Card(
                             modifier = Modifier.size(60.dp),
                         ) {
@@ -103,30 +102,15 @@ fun HomeScreen(
                                     modifier = Modifier
                                         .size(24.dp)
                                         .selectable(
-                                            selected = state.selectedBucket == index,
+                                            selected = state.selectedBucket == bucket.name,
                                             onClick = {
-                                                onEvent(HomeScreenEvents.SetSelectedBucket(index))
+                                                onEvent(HomeScreenEvents.SetSelectedBucket(bucket.name))
                                                 onEvent(HomeScreenEvents.SetDeleteDialogState(true))
                                             }
                                         )
                                 )
                             }
                         }
-                    }
-                }
-                if (state.selectedBucket != -1 && state.selectedBucket < state.buckets.size) {
-                    MyAlertDialog(
-                        isDialogOpen = state.isDeleteBucketDialogOpen,
-                        title = "Atenção",
-                        text = "Deseja mesmo excluir o bucket ${state.buckets[state.selectedBucket].name}?",
-                        negativeLabel = "Cancelar",
-                        positiveLabel = "Confirmar",
-                        onDismissRequest = {
-                            onEvent(HomeScreenEvents.SetDeleteDialogState(false))
-                            onEvent(HomeScreenEvents.SetSelectedBucket(-1))
-                        }
-                    ) {
-                        onEvent(HomeScreenEvents.DeleteBucket(state.buckets[state.selectedBucket].name))
                     }
                 }
             } else {
@@ -139,11 +123,15 @@ fun HomeScreen(
                 }
             }
         }
+        DeleteBucketDialog(
+            isOpen = state.selectedBucket != null,
+            bucket = state.selectedBucket ?: "",
+            onEvent = onEvent
+        )
         CreateBucketDialog(state = state.createBucketForm, onEvent = onEvent)
         NewBucketsDialog(
             buckets = state.bucketsCreatedOutsideTheApp,
             onEvent = onEvent
         )
-
     }
 }

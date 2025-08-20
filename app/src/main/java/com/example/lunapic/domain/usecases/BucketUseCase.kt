@@ -7,8 +7,9 @@ import com.example.lunapic.domain.entities.AllAndPendingSyncBuckets
 import com.example.lunapic.domain.entities.Bucket
 import com.example.lunapic.domain.entities.CreateBucketDTO
 import com.example.lunapic.domain.entities.OutOfAppCreatedBucketDTO
+import javax.inject.Inject
 
-class BucketUseCase(
+class BucketUseCase @Inject constructor(
     private val cloudStorageRepository: CloudStorageRepository,
     private val internalStorageRepository: InternalStorageRepository,
 ) {

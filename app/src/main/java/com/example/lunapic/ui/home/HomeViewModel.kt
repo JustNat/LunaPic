@@ -100,7 +100,7 @@ class HomeViewModel @Inject constructor(
 
             is HomeScreenEvents.SetCreateDialogState -> {
                 _state.update {
-                    it.copy(createBucketForm = it.createBucketForm.copy(isCreateBucketDialog = event.state))
+                    it.copy(createBucketForm = it.createBucketForm.copy(isOpen = event.state))
                 }
             }
 
@@ -140,18 +140,16 @@ class HomeViewModel @Inject constructor(
             }
 
             is HomeScreenEvents.SetBucketPrivacy -> {
-                val bucketsCreatedOutOfApp = _state.value.bucketsCreatedOutsideTheApp
-                val updatedBucket =
-                    bucketsCreatedOutOfApp?.get(event.index)
-                        ?.copy(isPrivate = !bucketsCreatedOutOfApp[event.index].isPrivate)
-                _state.update { state ->
-                    state.copy(
-                        bucketsCreatedOutsideTheApp = bucketsCreatedOutOfApp?.map { bucket ->
-                            if (bucket.name == updatedBucket?.name) {
-                                updatedBucket
-                            } else bucket
+                val updatedBucketsCreatedOutOfApp =
+                    _state.value.bucketsCreatedOutsideTheApp?.map { bucket ->
+                        if (bucket.name == event.bucketName) {
+                            bucket.copy(isPrivate = !bucket.isPrivate)
+                        } else {
+                            bucket
                         }
-                    )
+                    }
+                _state.update { state ->
+                    state.copy(bucketsCreatedOutsideTheApp = updatedBucketsCreatedOutOfApp)
                 }
             }
         }
@@ -252,7 +250,7 @@ class HomeViewModel @Inject constructor(
     }
 
     private fun resetDeleteBucketInfo() {
-        _state.update { it.copy(selectedBucket = -1, isDeleteBucketDialogOpen = false) }
+        _state.update { it.copy(selectedBucket = null, isDeleteBucketDialogOpen = false) }
     }
 
     private fun resetBucketsCreatedOutOfApp() {
